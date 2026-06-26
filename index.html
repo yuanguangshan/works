@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人类群星闪耀时 · 系列书稿</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f8f6f0;
+    --surface: #ffffff;
+    --text: #2c2c2c;
+    --muted: #88847c;
+    --border: #e8e4dc;
+    --accent-purple: #7c6fa0;
+    --accent-red: #c2685c;
+    --accent-blue: #5a7fa0;
+    --accent-green: #6a9a7a;
+    --accent-gold: #b8954a;
+    --shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  body {
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 4rem 0 3rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3rem;
+  }
+
+  header h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--text);
+    margin-bottom: 0.8rem;
+  }
+
+  header .subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  header .count {
+    display: inline-block;
+    margin-top: 1.2rem;
+    padding: 0.3rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    margin: 2rem 0 3rem;
+    flex-wrap: wrap;
+  }
+  .stats-item {
+    text-align: center;
+  }
+  .stats-item .num {
+    display: block;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stats-item .label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* Sections */
+  section {
+    margin-bottom: 3rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .section-header .icon {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+  .section-header h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+  .section-header .desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-left: auto;
+    max-width: 380px;
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  /* Book grid */
+  .book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  .book-card {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    text-decoration: none;
+    color: var(--text);
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .book-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    border-color: #ccc;
+  }
+
+  .book-card .title {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 0.3rem;
+  }
+  .book-card .title .sub {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .book-card .desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: auto;
+  }
+
+  /* Section accent borders */
+  .section-purple .section-header { border-bottom-color: var(--accent-purple); }
+  .section-purple .book-card:hover { border-color: var(--accent-purple); }
+
+  .section-red .section-header { border-bottom-color: var(--accent-red); }
+  .section-red .book-card:hover { border-color: var(--accent-red); }
+
+  .section-blue .section-header { border-bottom-color: var(--accent-blue); }
+  .section-blue .book-card:hover { border-color: var(--accent-blue); }
+
+  .section-green .section-header { border-bottom-color: var(--accent-green); }
+  .section-green .book-card:hover { border-color: var(--accent-green); }
+
+  .section-gold .section-header { border-bottom-color: var(--accent-gold); }
+  .section-gold .book-card:hover { border-color: var(--accent-gold); }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 3rem 0;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+  footer p {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    header h1 { font-size: 1.6rem; letter-spacing: 2px; }
+    header { padding: 2rem 0 2rem; }
+    .section-header { flex-wrap: wrap; }
+    .section-header .desc { text-align: left; margin-left: 0; max-width: 100%; margin-top: 0.3rem; }
+    .book-grid { grid-template-columns: 1fr; }
+    .stats { gap: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <h1>人类群星闪耀时</h1>
+    <p class="subtitle">二十五部书稿 · 一个追问</p>
+    <span class="count">人类如何理解、建立、信任、突破和重建系统</span>
+
+    <div class="stats">
+      <div class="stats-item">
+        <span class="num">25</span>
+        <span class="label">书稿</span>
+      </div>
+      <div class="stats-item">
+        <span class="num">5</span>
+        <span class="label">路线</span>
+      </div>
+      <div class="stats-item">
+        <span class="num">13.5 万</span>
+        <span class="label">总行数</span>
+      </div>
+      <div class="stats-item">
+        <span class="num">138 亿年</span>
+        <span class="label">时间跨度</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 📐 纯粹理性线 -->
+  <section class="section-purple">
+    <div class="section-header">
+      <span class="icon">📐</span>
+      <h2>纯粹理性线</h2>
+      <span class="desc">从抽象到具体，理解人类如何用数学和逻辑搭建认知的骨架</span>
+    </div>
+    <div class="book-grid">
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E4%B8%80%E5%9C%BA%E6%A8%AA%E8%B7%A8%E4%B8%87%E5%B9%B4%E7%9A%84%E6%95%B0%E5%AD%A6%E6%8E%A2%E9%99%A9.md" target="_blank">
+        <span class="title">一场横跨万年的数学探险</span>
+        <span class="desc">数学思想的源头与演进——从两万年前的非洲刻骨到现代数学大厦</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E4%B8%8D%E7%A1%AE%E5%AE%9A%E6%80%A7%E7%9A%84%E5%B0%8A%E4%B8%A5.md" target="_blank">
+        <span class="title">不确定性的尊严</span>
+        <span class="desc">在概率中做理性决策——十种工具，一个态度</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E8%AE%A1%E7%AE%97%E7%9A%84%E9%BB%8E%E6%98%8E_%E6%95%B0%E5%AD%97%E6%96%87%E6%98%8E%E5%8F%B2%E8%AF%97.md" target="_blank">
+        <span class="title">计算的黎明：<span class="sub">数字文明史诗</span></span>
+        <span class="desc">从算盘到量子计算机，计算如何改变了世界</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E7%BC%96%E7%A0%81%E4%B9%8B%E7%A5%9E_%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80%E7%BE%A4%E6%98%9F%E9%97%AA%E8%80%80%E6%97%B6.md" target="_blank">
+        <span class="title">编码之神：<span class="sub">编程语言群星闪耀时</span></span>
+        <span class="desc">编程语言的设计哲学与创造者群像</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E5%88%9B%E6%96%B0%E7%9A%84%E6%8E%A5%E5%8A%9B.md" target="_blank">
+        <span class="title">创新的接力</span>
+        <span class="desc">创新如何真正发生——被误解的历史与可复制的逻辑</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 🔐 攻防与信任线 -->
+  <section class="section-red">
+    <div class="section-header">
+      <span class="icon">🔐</span>
+      <h2>攻防与信任线</h2>
+      <span class="desc">在对抗环境中，系统如何被建立、被攻击、被保护</span>
+    </div>
+    <div class="book-grid">
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E5%AF%86%E7%A0%81%E7%9A%84%E5%86%92%E9%99%A9.md" target="_blank">
+        <span class="title">密码的冒险</span>
+        <span class="desc">加密技术的演进——从凯撒密码到后量子密码学</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E6%97%A0%E5%BD%A2%E4%B9%8B%E6%88%98.md" target="_blank">
+        <span class="title">无形之战：<span class="sub">黑客、漏洞与数字世界的安全史诗</span></span>
+        <span class="desc">电话飞客到AI黑客，半个多世纪的信任与背叛</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E7%AE%80%E5%8F%B2%EF%BC%9A%E4%BB%8E%E6%A2%A6%E6%83%B3%E5%88%B0%E7%8E%B0%E5%AE%9E.md" target="_blank">
+        <span class="title">人工智能简史：<span class="sub">从梦想到现实</span></span>
+        <span class="desc">从图灵到达特茅斯会议到AI Agent</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 🏢 企业与平台线 -->
+  <section class="section-blue">
+    <div class="section-header">
+      <span class="icon">🏢</span>
+      <h2>企业与平台线</h2>
+      <span class="desc">技术只是放大了底层已经存在的制度设计——每一家伟大的公司都是一种新的信任结构</span>
+    </div>
+    <div class="book-grid">
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E5%85%AC%E5%8F%B8%E5%8F%B2%E5%90%88%E9%9B%86-%E9%9B%A8%E8%BD%A9.md" target="_blank">
+        <span class="title">公司史合集</span>
+        <span class="desc">从VOC到字节跳动，人类设计的信任机器四百年</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E4%BF%A1%E7%94%A8%E5%BC%95%E6%93%8E_%E9%98%BF%E9%87%8C%E5%B7%B4%E5%B7%B4.md" target="_blank">
+        <span class="title">信用引擎：阿里巴巴</span>
+        <span class="desc">湖畔花园里的信用革命——电商、支付与云</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E6%95%B0%E5%AD%97%E6%B0%B4%E7%B3%BB_%E8%85%BE%E8%AE%AF.md" target="_blank">
+        <span class="title">数字水系：腾讯</span>
+        <span class="desc">从OICQ到超级数字生态——连接的力量</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E6%97%A0%E5%BD%A2%E7%9F%A9%E9%98%B5_%E5%BE%AE%E8%BD%AF.md" target="_blank">
+        <span class="title">无形矩阵：微软</span>
+        <span class="desc">两个比尔和一个帝国的三次转型</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E7%A7%91%E6%8A%80%E8%8B%A6%E6%97%85_%E5%8D%8E%E4%B8%BA.md" target="_blank">
+        <span class="title">科技苦旅：华为</span>
+        <span class="desc">一家中国公司的技术长征与生存哲学</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E7%AE%97%E5%8A%9B%E4%B9%8B%E7%8E%8B_%E8%8B%B1%E4%BC%9F%E8%BE%BE.md" target="_blank">
+        <span class="title">算力之王：英伟达</span>
+        <span class="desc">从GPU到AI核爆——黄仁勋的Denny's时刻</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E8%8B%B9%E6%9E%9C%E5%B8%9D%E5%9B%BD.md" target="_blank">
+        <span class="title">苹果帝国</span>
+        <span class="desc">数字时代的两座大教堂——设计、生态与权力</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E8%BE%B9%E7%BC%98%E5%B7%A8%E5%85%BD%EF%BC%9ACloudflare%E7%9A%84%E9%87%8D%E5%A1%91%E4%BA%92%E8%81%94%E7%BD%91%E4%B9%8B%E8%B7%AF.md" target="_blank">
+        <span class="title">边缘巨兽：Cloudflare</span>
+        <span class="desc">互联网上最重要的公司，是你从未听说过的公司</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 🌌 宏大时空线 -->
+  <section class="section-green">
+    <div class="section-header">
+      <span class="icon">🌌</span>
+      <h2>宏大时空线</h2>
+      <span class="desc">从138亿年前到大灭绝之后，人类在一粒微尘上仰望星空</span>
+    </div>
+    <div class="book-grid">
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E5%AE%87%E5%AE%99%E7%9A%84%E6%95%85%E4%BA%8B.md" target="_blank">
+        <span class="title">宇宙的故事</span>
+        <span class="desc">从大爆炸到热寂，138亿年的物质演化</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E5%9C%B0%E7%90%83%E4%BC%A0.md" target="_blank">
+        <span class="title">地球传</span>
+        <span class="desc">46亿年的物质循环与生命涌现</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E8%A1%8C%E6%98%9F%E7%9A%84%E5%8F%91%E7%8E%B0%E8%80%85%E4%BB%AC.md" target="_blank">
+        <span class="title">行星的发现者们</span>
+        <span class="desc">人类如何"看见"脚下和头顶的世界</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E6%9C%88%E4%BA%AE%E4%BC%A0.md" target="_blank">
+        <span class="title">月亮传</span>
+        <span class="desc">从伤口开出的花——月球的诞生、演化与人类仰望</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 🎨 人文跨界线 -->
+  <section class="section-gold">
+    <div class="section-header">
+      <span class="icon">🎨</span>
+      <h2>人文跨界线</h2>
+      <span class="desc">不可见之物如何获得形式——从洞穴壁画到科学方法</span>
+    </div>
+    <div class="book-grid">
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E5%8F%AF%E8%A7%86%E7%9A%84%E5%B0%8A%E4%B8%A5.md" target="_blank">
+        <span class="title">可视的尊严</span>
+        <span class="desc">艺术的赋形历史——不可见之物如何获得形式</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E4%B8%80%E7%99%BE%E4%BD%8D%E7%A7%91%E5%AD%A6%E5%AE%B6%E4%BC%A0%E8%AE%B0.md" target="_blank">
+        <span class="title">一百位科学家传记</span>
+        <span class="desc">那些建立信任的人——30位核心人物的完整生平</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E4%B8%AD%E5%9B%BD%E7%8A%B6%E5%85%83%E5%8F%B2.md" target="_blank">
+        <span class="title">中国状元史</span>
+        <span class="desc">从制度中看人，从人中见时代——千年科举的制度逻辑</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E6%96%AF%E6%96%87%E5%9C%A8%E5%85%B9.md" target="_blank">
+        <span class="title">斯文在兹</span>
+        <span class="desc">线条、笔墨与色彩的三千年——中国艺术的精神谱系</span>
+      </a>
+      <a class="book-card" href="https://github.com/yuanguangshan/works/blob/main/%E6%B1%9F%E5%8D%97%E7%9A%84%E5%AD%A4%E6%9C%AC%EF%BC%9A%E8%8B%8F%E5%B7%9E%E4%BC%A0.md" target="_blank">
+        <span class="title">江南的孤本：苏州传</span>
+        <span class="desc">一座城市的人文剖面——江南何以成为江南</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <p>雨轩 · 于听雨轩 🌧️🏠</p>
+    <p style="margin-top:0.5rem; font-size:0.8rem;">所有书稿为个人独立写作，未经许可不得用于商业用途</p>
+  </footer>
+
+</div>
+
+</body>
+</html>
