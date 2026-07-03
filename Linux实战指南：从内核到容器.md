@@ -98,7 +98,7 @@ sda           8:0    0   120G  0 disk
 **Linux 6.6 LTS（2024 年发布）**：
 - **io_uring 增强**：异步 IO 性能翻倍，数据库场景显著受益
 - **eBPF 调度器**：可热替换 CPU 调度器（如`sched_ext`）
-- **BBR v3 网络拥塞控制**：跨数据中心吞吐量提升 15-20%
+- **BBR v3 网络拥塞控制**：跨数据中心吞吐量提升 15-20%（注：主线内置 BBR v1；v2/v3 为 Google 带外补丁，详见 13.3 节）
 - **影子栈（Shadow Stack）**：用户态控制流完整性，缓解 ROP 攻击
 
 **Linux 6.10/6.12 新增**：
@@ -6076,7 +6076,7 @@ $ sudo tcpdump -i eth0 -nn 'tcp and host 93.184.216.34' | grep -E 'Flags'
 
 ### UDP 实战
 
-> **🧭 延伸阅读**：本章讨论的 TCP 拥塞控制默认算法是 CUBIC（基于丢包），但现代跨数据中心场景下，**Google 推出的 BBR 算法通过主动探测带宽和延迟**，吞吐量可提升 15%-20%。Linux 4.9+ 已支持 BBR，6.x 版本引入的 BBR v3 进一步优化了多流公平性。详见**第十三章 13.3 节**。
+> **🧭 延伸阅读**：本章讨论的 TCP 拥塞控制默认算法是 CUBIC（基于丢包），但现代跨数据中心场景下，**Google 推出的 BBR 算法通过主动探测带宽和延迟**，吞吐量可提升 15%-20%。主线 Linux 自 4.9 起内置 BBR（v1）；BBR v2/v3 仅作为 Google 带外补丁，未进主线。详见**第十三章 13.3 节**。
 
 
 ```bash
@@ -11766,9 +11766,10 @@ io_getevents(0x7f..., 1, ...) = 1      # 系统调用 2
 $ grep CONFIG_IO_URING /boot/config-$(uname -r)
 CONFIG_IO_URING=y
 
-# 2. 查看当前系统 io_uring 版本
-$ cat /proc/self/io_uring
-# 如果文件存在，说明当前内核支持
+# 2. 确认内核是否支持 io_uring（注意：/proc/self/io_uring 并不存在）
+$ grep io_uring_setup /proc/kallsyms
+ffffffff81xxxxxx T __x64_sys_io_uring_setup    # 能查到该系统调用符号即支持
+# 或直接用 liburing 调用 io_uring_queue_init()，成功即支持
 
 # 3. 查看进程是否使用 io_uring（通过 eBPF 追踪）
 $ sudo bpftrace -e 'tracepoint:io_uring:io_uring_submit_sqe { @apps[comm] = count(); }'
@@ -11818,19 +11819,18 @@ $ sudo fio --name=randread-uring \
 ### 实战：使用 io_uring 的应用
 
 ```bash
-# 1. 检查 MySQL 是否使用 io_uring（8.0.26+ 默认启用）
-$ mysql -e "SHOW VARIABLES LIKE 'innodb_use_io_uring';"
-+---------------------+-------+
-| Variable_name       | Value |
-+---------------------+-------+
-| innodb_use_io_uring | ON    |
-+---------------------+-------+
-
-# 2. Redis 7.0+ 使用 io_uring 替代 epoll
-$ redis-server --io-threads 4
-
-# 3. QEMU/KVM 使用 io_uring 加速虚拟磁盘
+# 1. QEMU/KVM 使用 io_uring 加速虚拟磁盘（QEMU 5.0+ 支持，非默认后端）
 $ qemu-system-x86_64 -drive file=/path/disk.qcow2,if=virtio,aio=io_uring
+
+# 2. PostgreSQL 18 起支持 io_method=io_uring
+$ psql -c "SHOW io_method;"
+
+# 注意：上游 Oracle MySQL 8.0 并没有 innodb_use_io_uring 变量
+# （8.0.26 引入的是 innodb_use_fdatasync，与 io_uring 无关）。
+# InnoDB 的 io_uring 支持目前仅见于 MariaDB（内部特性）和
+# Percona Server（针对 MyRocks，默认关闭）。
+# Redis 各稳定版本（7.x/8.x）仍使用 epoll，io_uring 后端仅有未合并的 PR #14644。
+# 结论：io_uring 主要在 QEMU、PostgreSQL、Nginx(可选) 等场景落地。
 ```
 
 ### 避坑指南
@@ -11853,7 +11853,7 @@ $ docker run --rm --cap-add=SYS_ADMIN ubuntu grep CONFIG_IO_URING /boot/config-$
 
 ## 13.2 sched_ext：可热替换的 CPU 调度器
 
-**一句话定义**：`sched_ext`（调度器扩展）是 Linux 6.6 引入、6.12 正式稳定的框架，允许开发者使用 eBPF 编写自定义 CPU 调度策略，并支持**无需重启内核**的热加载与热卸载。
+**一句话定义**：`sched_ext`（调度器扩展）是 **Linux 6.12 正式合并进主线**的框架，允许开发者使用 eBPF 编写自定义 CPU 调度策略，并支持**无需重启内核**的热加载与热卸载。
 
 ### 为什么需要 sched_ext？
 
@@ -11862,8 +11862,8 @@ $ docker run --rm --cap-add=SYS_ADMIN ubuntu grep CONFIG_IO_URING /boot/config-$
 # 想改调度策略 → 修改内核 C 代码 → 重新编译内核 → 重启服务器
 # 生产环境无法接受
 
-# sched_ext 的解决方式：调度策略变成 eBPF 程序
-$ bpftool sched_ext load my_sched.bpf.o
+# sched_ext 的解决方式：调度策略变成 eBPF 程序，运行用户态调度器即可热加载
+$ sudo scx_simple
 # 一行命令，新调度策略立即生效，无需重启
 ```
 
@@ -11874,9 +11874,9 @@ $ bpftool sched_ext load my_sched.bpf.o
 $ uname -r
 6.12.0-rc1+                # 6.12 及以上
 
-# 2. 检查内核配置
-$ grep CONFIG_SCHED_EXT /boot/config-$(uname -r)
-CONFIG_SCHED_EXT=y
+# 2. 检查内核配置（官方 Kconfig 符号是 CONFIG_SCHED_CLASS_EXT）
+$ grep CONFIG_SCHED_CLASS_EXT /boot/config-$(uname -r)
+CONFIG_SCHED_CLASS_EXT=y
 
 # 3. 检查当前调度器
 $ cat /sys/kernel/sched_ext/root/ops
@@ -11891,24 +11891,23 @@ $ git clone https://github.com/sched-ext/scx.git
 $ cd scx
 $ make
 
-# 2. 查看可用的调度器示例
-$ ls *.bpf.o
-scx_simple.bpf.o    # 简单调度器
-scx_rusty.bpf.o     # Rust 实现的调度器
-scx_layered.bpf.o   # 分层调度器
-scx_central.bpf.o   # 集中式调度器
+# 2. 查看可用的调度器（scx 工具集已用 Rust 重写，提供一组用户态二进制）
+$ ls /usr/bin/scx_*
+scx_simple     # 简单调度器
+scx_rusty      # 分域调度器
+scx_layered    # 分层调度器
+scx_central    # 集中式调度器
 
-# 3. 加载一个调度器（以 scx_simple 为例）
-$ sudo bpftool sched_ext load scx_simple.bpf.o
-# 调度策略立即生效！
+# 3. 运行一个调度器（以 scx_simple 为例）—— 这才是加载 sched_ext 的正确方式
+$ sudo scx_simple
+# 调度策略立即生效！该进程内部通过 libbpf 加载 BPF 程序并注册 sched_ext_ops
 
 # 4. 验证调度器已加载
 $ cat /sys/kernel/sched_ext/root/ops
-scx_simple
+simple
 
 # 5. 卸载调度器（恢复默认 CFS/EEVDF）
-$ sudo bpftool sched_ext unload
-# 瞬间恢复默认调度策略
+#    直接 Ctrl+C 终止 scx_simple 进程，BPF 调度器自动卸载，任务回退到 fair class
 ```
 
 ### 实战：自定义调度策略（示例）
@@ -11946,11 +11945,11 @@ struct sched_ext_ops my_ops = {
 };
 EOF
 
-# 2. 编译为 BPF 对象文件
+# 2. 编译为 BPF 对象文件（实际项目用 libbpf-cargo 或 scx 框架组织用户态加载器）
 $ clang -target bpf -g -O2 -c my_sched.bpf.c -o my_sched.bpf.o
 
-# 3. 加载
-$ sudo bpftool sched_ext load my_sched.bpf.o
+# 3. 由用户态加载器加载 BPF 程序并注册 sched_ext_ops
+$ sudo ./my_loader
 
 # 4. 查看效果
 $ cat /sys/kernel/sched_ext/root/ops
@@ -11988,11 +11987,11 @@ $ sudo ./scx_layered -c layered_config.yaml
 
 ```bash
 # 坑1：调度器写崩了怎么办？
-$ sudo bpftool sched_ext unload        # 立即恢复默认调度器
-# 如果无法执行命令，重启系统也会恢复默认调度器
+# 直接 Ctrl+C 终止正在运行的 scx_* 进程，BPF 调度器会自动卸载、回退到 CFS/EEVDF
+# 进程已失联时，重启系统也会恢复默认调度器
 
-# 坑2：sched_ext 需要 CAP_BPF 和 CAP_SYS_ADMIN
-$ sudo bpftool sched_ext load my.bpf.o
+# 坑2：加载需要 CAP_BPF 和 CAP_SYS_ADMIN
+$ sudo ./scx_simple
 Error: operation not permitted
 # 解决：用 root 执行，或授予相应能力
 
@@ -12003,9 +12002,11 @@ Error: operation not permitted
 
 ---
 
-## 13.3 BBR v3：智能网络拥塞控制
+## 13.3 BBR：智能网络拥塞控制
 
-**一句话定义**：BBR（Bottleneck Bandwidth and RTT）是 Google 开发的 TCP 拥塞控制算法，BBR v3 是其第三代演进，通过主动探测网络瓶颈带宽和最小传播延迟来调整发送速率，在跨数据中心场景下吞吐量提升 15%-20%。
+**一句话定义**：BBR（Bottleneck Bandwidth and RTT）是 Google 开发的 TCP 拥塞控制算法，通过主动探测网络瓶颈带宽和最小传播延迟来调整发送速率，在跨数据中心场景下吞吐量提升 15%-20%。
+
+> ⚠️ **主线版本说明（重要）**：主线 Linux 内核自 **4.9** 起内置的就是 **BBR v1**（`net/ipv4/tcp_bbr.c` 至今未变）。**BBR v2 / v3 从未合入主线**，仅存在于 Google 的带外仓库 `github.com/google/bbr`，需自行打补丁编译。本节的启用方法针对主线 BBR v1；下文 v2/v3 的改进对比仅供了解演进方向，生产主线用不到。
 
 ### BBR vs 传统拥塞控制
 
@@ -12028,8 +12029,9 @@ net.ipv4.tcp_congestion_control = cubic
 $ sysctl net.ipv4.tcp_available_congestion_control
 net.ipv4.tcp_available_congestion_control = reno cubic bbr
 
-# 3. 启用 BBR（需要 Linux 4.9+）
-$ sudo modprobe tcp_bbr
+# 3. 启用 BBR（主线 v1，自 Linux 4.9 内置）
+#    多数发行版已将 BBR 编译进内核（=y），无需 modprobe；
+#    仅当以模块（=m）编译时才需要 modprobe tcp_bbr
 $ sudo sysctl -w net.core.default_qdisc=fq
 $ sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
 
@@ -12049,15 +12051,16 @@ tcp   ESTAB  0  0  192.168.1.100:22  10.0.0.5:54321
 # 2. BBR 特有的输出字段
 $ ss -ti | grep bbr
 tcp   ESTAB  0  0  192.168.1.100:443  203.0.113.1:12345
-     bbr wscale:7,7 rto:204 rtt:1.2/0.3 pacing_rate 100M bbr:0.5 ...
-# bbr:0.5 表示 bw_hi（带宽高估因子）
+     bbr:(bw:104M,mrtt:1.2,pacing_gain:2.89,cwnd_gain:2.89) ...
+# pacing_gain 是 pacing 速率增益系数（Startup≈2.89、Drain≈0.35、ProbeBW 上探 1.25/下探 0.75、稳态 1.0）
+# 注意：bw_hi/bw_lo 是 BBRv2 的内部字段，主线 BBRv1 的 ss -ti 不输出
 
 # 3. 查看 BBR 统计信息
 $ nstat -z | grep BBR
 TcpExtTCPBBRFlow                   12345         0.0
 ```
 
-### 实战：BBR v3 性能测试
+### 实战：BBR 性能测试
 
 ```bash
 # 1. iperf3 测试（服务端）
@@ -12087,7 +12090,9 @@ EOF
 $ sudo sysctl --system
 ```
 
-### BBR v3 的改进（2024-2026）
+### BBR v2 / v3 的演进（Google 带外，未进主线）
+
+> 以下对比来自 Google 的 `github.com/google/bbr` 仓库分支，**主线内核并不包含 v2/v3**，仅供了解演进方向。
 
 | 改进点 | BBR v2 | BBR v3 |
 |--------|--------|--------|
@@ -12146,18 +12151,19 @@ ROP 攻击（缓冲区溢出）：
 ### 实战：检查影子栈支持
 
 ```bash
-# 1. 检查 CPU 是否支持 CET
-$ grep -E "cet|shadow" /proc/cpuinfo
-flags           : ... cet_shadow cet_ibt ...
-# 如果有 cet_shadow，说明 CPU 支持影子栈
+# 1. 检查 CPU 是否支持影子栈（cpuinfo flag 是 user_shstk，不是 cet_shadow）
+$ grep -E "user_shstk|ibt" /proc/cpuinfo
+flags           : ... user_shstk ibt ...
+# 有 user_shstk 说明 CPU 支持用户态影子栈（ibt 是间接分支跟踪）
 
-# 2. 检查内核是否启用 CET 支持
-$ grep CONFIG_X86_CET /boot/config-$(uname -r)
-CONFIG_X86_CET=y
+# 2. 检查内核是否启用影子栈支持（配置项是 CONFIG_X86_USER_SHADOW_STACK）
+$ grep CONFIG_X86_USER_SHADOW_STACK /boot/config-$(uname -r)
+CONFIG_X86_USER_SHADOW_STACK=y
 
-# 3. 检查当前进程的影子栈状态
-$ cat /proc/self/status | grep -i shadow
-ShadowStack:     enabled
+# 3. 检查当前进程的影子栈状态（字段是 x86_Thread_features，不是 ShadowStack）
+$ grep x86_Thread_features /proc/self/status
+x86_Thread_features:           shstk wrss
+x86_Thread_features_locked:    shstk wrss
 ```
 
 ### 实战：编译支持影子栈的程序
@@ -12166,15 +12172,14 @@ ShadowStack:     enabled
 # 1. 编译时启用 CET 保护
 $ gcc -fcf-protection=full -o myapp myapp.c
 
-# 2. 检查二进制文件是否启用 CET
-$ readelf -n myapp | grep -i cet
-   0x00000000 (NT_X86_CET)         Size: 8 bytes
-# 如果看到 NT_X86_CET，说明启用了 CET
+# 2. 检查二进制是否启用 CET（标注在 .note.gnu.property 段，grep SHSTK）
+$ readelf -n myapp | grep -aE "SHSTK|IBT"
+    x86 feature: IBT, SHSTK            # 同时启用间接分支跟踪与影子栈
 
 # 3. 运行时的影子栈状态
 $ ./myapp &
-$ cat /proc/$(pidof myapp)/status | grep ShadowStack
-ShadowStack:     enabled
+$ grep x86_Thread_features /proc/$(pidof myapp)/status
+x86_Thread_features:           shstk wrss
 ```
 
 ### 实战：检测 ROP 攻击尝试
@@ -12198,16 +12203,15 @@ $ grep -E "cet|shadow" /proc/interrupts
 # 1. 检查所有关键服务是否启用影子栈
 $ for svc in nginx mysql redis; do
     pid=$(pgrep -x $svc | head -1)
-    [ -n "$pid" ] && echo "$svc: $(cat /proc/$pid/status | grep ShadowStack)"
+    [ -n "$pid" ] && echo "$svc: $(grep x86_Thread_features /proc/$pid/status)"
   done
 
 # 2. 编译参数建议（Makefile）
-CFLAGS += -fcf-protection=full -mcet
+CFLAGS += -fcf-protection=full
 
-# 3. 内核参数（禁用 CET 调试）
+# 3. 内核命令行（系统级关闭用户态影子栈用 nousershstk，无运行时 sysctl）
 $ cat /proc/cmdline
-... cet=off            # 调试时禁用
-... cet=on             # 生产启用
+... nousershstk        # 调试时禁用用户态影子栈
 ```
 
 ### 避坑指南
@@ -12217,13 +12221,12 @@ $ cat /proc/cmdline
 # 老 CPU 无法使用
 
 # 坑2：某些发行版默认未启用
-$ grep CONFIG_X86_CET /boot/config-$(uname -r)
-# CONFIG_X86_CET is not set
+$ grep CONFIG_X86_USER_SHADOW_STACK /boot/config-$(uname -r)
+# CONFIG_X86_USER_SHADOW_STACK is not set
 # 需要重新编译内核
 
 # 坑3：影子栈可能与某些调试器冲突
-# gdb attach 时可能报错，调试时可临时禁用
-$ echo 0 > /proc/sys/kernel/shadow_stack_enabled
+# gdb attach 时可能报错，调试时可在内核命令行加 nousershstk 临时禁用（无运行时 sysctl）
 ```
 
 ---
@@ -12389,10 +12392,10 @@ $ cat /proc/version
 Linux version 6.12.0 (rustc 1.78.0) ...
 # 内核构建时使用的 Rust 编译器版本
 
-# 3. 检查已加载的 Rust 内核模块
+# 3. 检查已加载的 Rust 内核模块（Rust Binder 驱动在 6.18 合并，与原 C 实现并存）
 $ lsmod | grep -E 'rust|binder'
 binder_linux           65536  0
-# binder_linux 是 Android 的 Binder 驱动，用 Rust 重写
+# binder_linux 是 Android 的 Binder 驱动；其 Rust 重写版于 Linux 6.18 合并进主线
 ```
 
 ### 实战：编译 Rust 内核模块
@@ -12517,8 +12520,8 @@ $ cat Documentation/rust/rust_required_version.txt  # 查看版本要求
 | 特性 | 引入版本 | 生产可用 | 核心价值 | 适用场景 |
 |------|----------|----------|----------|----------|
 | **io_uring** | 5.1 | ✅ 6.x | IOPS 翻倍 | 数据库、KV 存储 |
-| **sched_ext** | 6.6 | ✅ 6.12 | 调度策略热替换 | 大厂定制调度 |
-| **BBR v3** | 6.6 | ✅ | 跨数据中心吞吐 +20% | 广域网传输 |
+| **sched_ext** | 6.12 | ✅ | 调度策略热替换 | 大厂定制调度 |
+| **BBR** | 4.9 | ✅ | 跨数据中心吞吐 +20%（主线 v1） | 广域网传输 |
 | **影子栈** | 6.6 | ✅ | 硬件级 ROP 防御 | 高安全环境 |
 | **PREEMPT_RT** | 6.12 | ✅ | 微秒级硬实时 | 工业/汽车/音频 |
 | **Rust for Linux** | 6.1 | 🔄 发展中 | 编译期内存安全 | 新驱动开发 |
@@ -12535,7 +12538,7 @@ $ cat Documentation/rust/rust_required_version.txt  # 查看版本要求
 └─ 否 → 默认 CFS/EEVDF
 
 网络跨地域传输？
-├─ 是 → BBR v3（跨洲数据中心）
+├─ 是 → BBR（跨洲数据中心，主线 v1）
 └─ 否 → CUBIC（局域网）
 
 需要防止 ROP 攻击？
@@ -12555,17 +12558,17 @@ $ cat Documentation/rust/rust_required_version.txt  # 查看版本要求
 
 ```bash
 # 生产环境中逐步启用这些特性的推荐顺序：
-# 1. BBR v3（无风险，立即收益）
+# 1. BBR（无风险，立即收益；主线 v1，自 4.9 内置）
 $ sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
 
 # 2. io_uring（应用升级即可）
-# 升级 Redis 7.0+、MySQL 8.0.26+、PostgreSQL 16+
+# 升级 PostgreSQL 18+、QEMU 5.0+、Nginx 等支持 io_uring 的组件
 
 # 3. 影子栈（硬件支持则启用）
-$ sudo grep -q cet_shadow /proc/cpuinfo && echo "CET supported"
+$ sudo grep -q user_shstk /proc/cpuinfo && echo "CET supported"
 
 # 4. sched_ext（测试环境先试）
-$ sudo bpftool sched_ext load scx_simple.bpf.o
+$ sudo scx_simple
 
 # 5. PREEMPT_RT（需要专用内核）
 # 安装 kernel-rt 包
@@ -12602,9 +12605,9 @@ ffffffff81234567 T __x64_sys_mseal
 # 即使攻击者利用漏洞获得了任意代码执行，也无法修改这些区域
 ```
 
-**Intel LASS 支持 (6.19)**：利用 CPU 硬件隔离线性地址空间——用户态代码无法访问内核地址，即使通过侧信道泄露了内核地址也无法使用。与 SMAP/SMEP 互补，构成"纵深防御"的三层防线。
+**Intel LASS 基础支持 (6.19)**：6.19 合入 LASS（Linear Address Space Separation）的初始支持——利用 CPU 硬件隔离线性地址空间，用户态代码无法访问内核地址，即使通过侧信道泄露了内核地址也无法使用。与 SMAP/SMEP 互补，后续版本仍在完善。
 
-**专用 Slab 分配器 (6.11)**：通过隔离内存池防御"堆喷射"攻击——每个内核对象类型拥有独立的内存池，不同类型之间无法互相污染。这是对 `CONFIG_SLAB_FREELIST_HARDENED` 的进一步强化。
+**专用桶分配器 (6.11)**（Dedicated Bucket Allocator / `kmem_buckets`）：通过按对象类型隔离 bucket 来防御"堆喷射"攻击——每个内核对象类型拥有独立的内存池，不同类型之间无法互相污染。这是对 `CONFIG_SLAB_FREELIST_HARDENED` 的进一步强化。
 
 **ARM 影子栈支持 (6.13)**：将第 13.4 节的 Shadow Stack 防护扩展到 ARM 架构。
 
@@ -12719,11 +12722,11 @@ CONFIG_DRM_PANIC_QR_CODE=y
 
 思路：1. 批量提交/收割：一次系统调用提交 N 个请求，减少 syscall 开销；2. 零拷贝/内核轮询：支持 SQPOLL 模式，用户态无需系统调用也能完成 IO。
 
-2. 排障题：bpftool sched_ext load my_sched.bpf.o 报错 Error: failed to load program: Operation not permitted，除了 root 权限，还缺少什么内核配置？
+2. 排障题：运行 sudo scx_simple 加载 sched_ext 调度器时报错 Operation not permitted，除了 root 权限，还缺少什么内核配置？
 
-思路：缺少 CONFIG_SCHED_EXT（6.12+）或内核未开启。检查 uname -r 是否足够新，且 grep CONFIG_SCHED_EXT /boot/config-$(uname -r) 是否为 y。
+思路：缺少 CONFIG_SCHED_CLASS_EXT（6.12+）或内核未开启。检查 uname -r 是否足够新，且 grep CONFIG_SCHED_CLASS_EXT /boot/config-$(uname -r) 是否为 y。
 
-3. 实操题：启用并永久配置 BBR v3 拥塞控制，写出完整的 sysctl 配置内容。
+3. 实操题：启用并永久配置 BBR 拥塞控制（主线 v1），写出完整的 sysctl 配置内容。
 
 思路：
 
@@ -12752,7 +12755,7 @@ net.ipv4.tcp_congestion_control = bbr
 
 8. 综合题：公司业务是跨大洲的数据库同步，网络延迟高（RTT > 200ms）。你会从本章中选取哪两个内核特性来优化？为什么？
 
-思路：1. BBR v3：主动探测带宽，在高 BDP（带宽时延积）网络中吞吐量远超 CUBIC。2. TCP 零拷贝接收 (6.12+)：如果传输大块数据，零拷贝可大幅降低 CPU 负载。如果遇到丢包，配合精确 ECN 使用。
+思路：1. BBR（主线 v1）：主动探测带宽，在高 BDP（带宽时延积）网络中吞吐量远超 CUBIC。2. TCP 零拷贝接收 (6.12+)：如果传输大块数据，零拷贝可大幅降低 CPU 负载。如果遇到丢包，配合精确 ECN 使用。
 
 ---
 
