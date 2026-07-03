@@ -1,4 +1,4 @@
-# Linux实战指南：从内核到容器
+# Linux 实战指南：从内核到容器
 
 > 摒弃过时老命令，基于 Linux 6.6 LTS / Ubuntu 24.04 / RHEL 9 编写，面向现代云原生环境的 Linux 实操手册。
 > 12 章核心内容 + 第 13 章（Linux 6.x+ 内核前沿特性）+ 附录 A（Shell 脚本实战）/B（故障排查速查表）/C（命令速查表）/D（概念索引），涵盖系统基础、文件系统、权限模型、进程管理、网络、systemd、性能调优、日志、安全审计、容器化与内核新特性。
@@ -42,18 +42,18 @@
 ---
 # 第一章：系统基础与架构
 
-> **本章定位**：从零开始认识Linux的内部构造——内核如何与硬件对话、Shell如何成为人机桥梁、系统如何从按下电源到登录Shell。理解本章，你就掌握了与Linux对话的"语法"。
+> **本章定位**：从零开始认识 Linux 的内部构造——内核如何与硬件对话、Shell 如何成为人机桥梁、系统如何从按下电源到登录 Shell。理解本章，你就掌握了与 Linux 对话的"语法"。
 
 ---
 
-## 1.1 内核（Kernel）：Linux的心脏
+## 1.1 内核（Kernel）：Linux 的心脏
 
-**一句话定义**：内核是直接附着在硬件之上的程序，负责CPU调度、内存分配、设备驱动、文件系统挂载等核心功能，是用户程序与硬件之间唯一的中间人。
+**一句话定义**：内核是直接附着在硬件之上的程序，负责 CPU 调度、内存分配、设备驱动、文件系统挂载等核心功能，是用户程序与硬件之间唯一的中间人。
 
 **为什么重要**：
-- 性能问题的根因，70%在内核（调度、IO、内存）
+- 性能问题的根因，70% 在内核（调度、IO、内存）
 - 容器、安全、网络都依赖内核特性
-- Linux 6.x LTS是当前生产环境主流（6.6/6.10/6.12）
+- Linux 6.x LTS 是当前生产环境主流（6.6/6.10/6.12）
 
 ### 内核版本怎么看
 
@@ -93,17 +93,17 @@ sda           8:0    0   120G  0 disk
 └─sda2        8:2    0 119.5G  0 part /
 ```
 
-### Linux 6.x的新特性（生产相关）
+### Linux 6.x 的新特性（生产相关）
 
-**Linux 6.6 LTS（2024年发布）**：
-- **io_uring增强**：异步IO性能翻倍，数据库场景显著受益
-- **eBPF调度器**：可热替换CPU调度器（如`sched_ext`）
-- **BBR v3网络拥塞控制**：跨数据中心吞吐量提升15-20%
-- **影子栈（Shadow Stack）**：用户态控制流完整性，缓解ROP攻击
+**Linux 6.6 LTS（2024 年发布）**：
+- **io_uring 增强**：异步 IO 性能翻倍，数据库场景显著受益
+- **eBPF 调度器**：可热替换 CPU 调度器（如`sched_ext`）
+- **BBR v3 网络拥塞控制**：跨数据中心吞吐量提升 15-20%
+- **影子栈（Shadow Stack）**：用户态控制流完整性，缓解 ROP 攻击
 
 **Linux 6.10/6.12 新增**：
-- **sched_ext调度器正式可用**：用BPF写自己的调度策略
-- **Rust内核代码占比超3%**：驱动可用Rust写，安全性提升
+- **sched_ext 调度器正式可用**：用 BPF 写自己的调度策略
+- **Rust 内核代码占比超 3%**：驱动可用 Rust 写，安全性提升
 - **实时内核改进**：`PREEMPT_RT` 接近主线合并
 
 ### 实战：查看内核模块
@@ -126,17 +126,17 @@ depends:        mbcache,jbd2
 
 ## 1.2 发行版（Distribution）：内核之上的"全家桶"
 
-**一句话定义**：发行版 = Linux内核 + GNU工具 + 软件包管理器 + 桌面环境 + 应用软件的完整套装。
+**一句话定义**：发行版 = Linux 内核 + GNU 工具 + 软件包管理器 + 桌面环境 + 应用软件的完整套装。
 
 ### 主流发行版速览
 
-| 发行版 | 包管理器 | 适合场景 | 2024-2026现状 |
+| 发行版 | 包管理器 | 适合场景 | 2024-2026 现状 |
 |--------|----------|----------|---------------|
 | **Ubuntu 24.04 LTS** | apt | 服务器/桌面新手 | 服务器市场占有率第一 |
-| **RHEL 9.x** | dnf/rpm | 企业生产环境 | 商业订阅，CentOS Stream是免费替代 |
-| **Debian 12** | apt | 稳定服务器 | Ubuntu的上游 |
-| **Rocky Linux 9** | dnf/rpm | CentOS替代品 | CentOS停更后崛起 |
-| **Fedora 41** | dnf | 技术尝鲜 | RHEL的上游，新特性首发地 |
+| **RHEL 9.x** | dnf/rpm | 企业生产环境 | 商业订阅，CentOS Stream 是免费替代 |
+| **Debian 12** | apt | 稳定服务器 | Ubuntu 的上游 |
+| **Rocky Linux 9** | dnf/rpm | CentOS 替代品 | CentOS 停更后崛起 |
+| **Fedora 41** | dnf | 技术尝鲜 | RHEL 的上游，新特性首发地 |
 | **Arch Linux** | pacman | 学习者/高级用户 | 滚动更新，最新软件 |
 | **openEuler 22.03** | dnf | 国产化/信创 | 华为主导，国产服务器主流 |
 | **Anolis OS 8** | dnf | 国产化替代 | 龙蜥社区，阿里云主导 |
@@ -152,7 +152,7 @@ Ubuntu Desktop → Ubuntu Server → Debian → RHEL/CentOS → Arch
 ```
 
 **场景匹配**：
-- **学习Linux**：Ubuntu Desktop（文档多、桌面友好）
+- **学习 Linux**：Ubuntu Desktop（文档多、桌面友好）
 - **学服务器**：Ubuntu Server（与生产一致）
 - **找工作**：CentOS Stream / RHEL（国内企业主流）
 - **性能调优**：Arch（最新内核，方便测试）
@@ -183,9 +183,9 @@ Operating System: Ubuntu 24.04 LTS
 
 ## 1.3 Shell：与内核对话的翻译官
 
-**一句话定义**：Shell是接收用户命令、解析后调用内核执行的命令行解释器。Linux默认Shell是Bash（`/bin/bash`）。
+**一句话定义**：Shell 是接收用户命令、解析后调用内核执行的命令行解释器。Linux 默认 Shell 是 Bash（`/bin/bash`）。
 
-### Shell的历史脉络
+### Shell 的历史脉络
 
 ```
 sh (Bourne Shell, 1977)         — 经典
@@ -195,7 +195,7 @@ sh (Bourne Shell, 1977)         — 经典
      └─ nushell (Rust重写)      — 结构化数据处理
 ```
 
-### 查看和切换Shell
+### 查看和切换 Shell
 
 ```bash
 $ echo $SHELL                      # 当前用户默认Shell
@@ -210,7 +210,7 @@ $ cat /etc/shells                  # 系统支持的所有Shell
 $ chsh -s /usr/bin/zsh             # 修改默认Shell（需注销重新登录）
 ```
 
-### Bash的核心特性
+### Bash 的核心特性
 
 **1. 通配符**：
 ```bash
@@ -245,21 +245,21 @@ $ env                              # 查看所有环境变量
 
 ---
 
-## 1.4 终端（Terminal）：Shell的"窗口"
+## 1.4 终端（Terminal）：Shell 的"窗口"
 
-**一句话定义**：终端是运行Shell的图形化窗口程序，它本身不执行命令，只负责显示和键盘输入。
+**一句话定义**：终端是运行 Shell 的图形化窗口程序，它本身不执行命令，只负责显示和键盘输入。
 
 ### 常见终端模拟器
 
 | 终端 | 特点 | 适用 |
 |------|------|------|
-| **GNOME Terminal** | Ubuntu默认 | 通用 |
-| **iTerm2** | macOS下的神级终端 | macOS |
-| **Windows Terminal** | Windows 11+推荐 | Windows |
-| **Tabby** | 跨平台，支持SSH | 跨平台 |
+| **GNOME Terminal** | Ubuntu 默认 | 通用 |
+| **iTerm2** | macOS 下的神级终端 | macOS |
+| **Windows Terminal** | Windows 11+ 推荐 | Windows |
+| **Tabby** | 跨平台，支持 SSH | 跨平台 |
 | **tmux / screen** | 纯文本终端复用器 | 服务器（不依赖图形） |
 
-### SSH登录 = 远程终端
+### SSH 登录 = 远程终端
 
 ```bash
 $ ssh alice@192.168.1.100
@@ -269,7 +269,7 @@ Welcome to Ubuntu 24.04 LTS
 alice@server:~$ 
 ```
 
-**关键理解**：SSH登录后看到的是**虚拟终端**（伪终端PTY），不是真正的硬件终端。SSH客户端 = 终端，Shell在服务器上。
+**关键理解**：SSH 登录后看到的是**虚拟终端**（伪终端 PTY），不是真正的硬件终端。SSH 客户端 = 终端，Shell 在服务器上。
 
 ---
 
@@ -278,9 +278,9 @@ alice@server:~$
 **一句话定义**：控制台是系统启动时直接输出的文本界面（tty1-tty6），不依赖图形环境。
 
 **为什么关键**：
-- 显卡驱动崩溃 → GUI进不去 → 只能靠控制台
+- 显卡驱动崩溃 → GUI 进不去 → 只能靠控制台
 - 修改了错误的`/etc/X11/*` → 图形系统挂掉 → 控制台救场
-- 远程VNC断连 → 但物理机仍可控制台操作
+- 远程 VNC 断连 → 但物理机仍可控制台操作
 
 ### 切换控制台
 
@@ -295,13 +295,13 @@ alice    tty1         2026-07-02 09:00
 bob      pts/0        2026-07-02 09:30
 ```
 
-> 注意：`tty`是物理/虚拟控制台，`pts/N`是SSH等伪终端（pseudo-terminal）。
+> 注意：`tty`是物理/虚拟控制台，`pts/N`是 SSH 等伪终端（pseudo-terminal）。
 
 ---
 
 ## 1.6 根用户（Root）：超级管理员的代价
 
-**一句话定义**：UID=0的用户，拥有对系统的完全控制权，能删除任何文件、修改任何配置。
+**一句话定义**：UID=0 的用户，拥有对系统的完全控制权，能删除任何文件、修改任何配置。
 
 ### 风险警示
 
@@ -312,9 +312,9 @@ $ rm -rf /                         # ⚠️ 千万别执行！会删除整个系
 $ dd if=/dev/zero of=/dev/sda      # ⚠️ 千万别执行！会擦除硬盘
 ```
 
-这些命令一旦执行，**无法撤销**。生产环境应避免直接用root。
+这些命令一旦执行，**无法撤销**。生产环境应避免直接用 root。
 
-### 为什么UID固定是0？
+### 为什么 UID 固定是 0？
 
 ```bash
 $ cat /etc/passwd | grep ':0:'
@@ -347,13 +347,13 @@ $ rm -rf /opt/old/
 
 ## 1.7 sudo：精细化授权的安全之道
 
-**一句话定义**：sudo允许授权用户以其他用户（通常是root）身份执行特定命令，所有操作被记录到日志。
+**一句话定义**：sudo 允许授权用户以其他用户（通常是 root）身份执行特定命令，所有操作被记录到日志。
 
-### sudo vs su对比
+### sudo vs su 对比
 
 | 维度 | `su -` | `sudo cmd` |
 |------|--------|------------|
-| 认证方式 | 输入root密码 | 输入**自己**密码 |
+| 认证方式 | 输入 root 密码 | 输入**自己**密码 |
 | 权限粒度 | 完全切换 | 可限定特定命令 |
 | 日志记录 | 无 | 完整记录到`/var/log/auth.log` |
 | 风险 | 高（长会话） | 低（单次授权） |
@@ -376,7 +376,7 @@ Cmnd_Alias NGIX_CMDS = /usr/bin/systemctl start nginx, \
 WEBADMINS ALL=(ALL) NOPASSWD: NGIX_CMDS
 ```
 
-### sudo实战技巧
+### sudo 实战技巧
 
 ```bash
 # 1. 查看自己能执行哪些sudo命令
@@ -401,7 +401,7 @@ $ sudo rm -rf /opt/old-project/
 # 真正的"确认"是养成敲命令前的三秒停顿
 ```
 
-### sudo日志审计
+### sudo 日志审计
 
 ```bash
 $ grep sudo /var/log/auth.log        # Ubuntu/Debian
@@ -410,14 +410,14 @@ Jul  2 10:30:15 server sudo: alice : TTY=pts/0 ; PWD=/home/alice ; USER=root ; C
 ```
 
 **生产环境**：
-- 给审计团队配置日志转发到SIEM
-- 监控`sudo COMMAND=/bin/bash`（提权到shell往往意味着入侵）
+- 给审计团队配置日志转发到 SIEM
+- 监控`sudo COMMAND=/bin/bash`（提权到 shell 往往意味着入侵）
 
 ---
 
 ## 1.8 系统调用（System Call）：用户态进入内核态的独木桥
 
-**一句话定义**：系统调用是用户程序请求内核服务的唯一合法入口，每一次文件操作、网络IO、进程创建最终都通过它实现。
+**一句话定义**：系统调用是用户程序请求内核服务的唯一合法入口，每一次文件操作、网络 IO、进程创建最终都通过它实现。
 
 ### 为什么需要系统调用？
 
@@ -441,14 +441,14 @@ Jul  2 10:30:15 server sudo: alice : TTY=pts/0 ; PWD=/home/alice ; USER=root ; C
 |----------|------|-----------------|
 | `open`/`close` | 打开/关闭文件 | `fopen()` |
 | `read`/`write` | 读写文件 | `fread()`/`fwrite()` |
-| `fork` | 复制进程 | shell启动新进程 |
+| `fork` | 复制进程 | shell 启动新进程 |
 | `exec` | 加载新程序 | `system()` |
 | `wait` | 等待子进程结束 | `waitpid()` |
-| `mmap` | 内存映射文件 | 高级IO |
+| `mmap` | 内存映射文件 | 高级 IO |
 | `socket` | 创建网络连接 | `connect()` |
 | `ioctl` | 设备控制 | `ifconfig` |
 
-### 用strace看系统调用
+### 用 strace 看系统调用
 
 **`strace`是排查问题的神器**，能跟踪进程调用的所有系统调用：
 
@@ -490,16 +490,16 @@ $ perf top -e syscalls:sys_enter_read
 
 ---
 
-## 1.9 POSIX：Unix世界的"普通话"
+## 1.9 POSIX：Unix 世界的"普通话"
 
-**一句话定义**：POSIX是IEEE制定的操作系统接口标准，定义了系统调用、Shell命令、工具行为等规范，Linux和macOS都遵循它。
+**一句话定义**：POSIX 是 IEEE 制定的操作系统接口标准，定义了系统调用、Shell 命令、工具行为等规范，Linux 和 macOS 都遵循它。
 
 **为什么重要**：
-- 你在Linux写的脚本，**理论上**在macOS/BSD也能跑
-- C语言程序用POSIX API写的，跨Unix移植性最强
-- 招聘JD常写"熟悉POSIX标准"，说明对方在乎兼容性
+- 你在 Linux 写的脚本，**理论上**在 macOS/BSD 也能跑
+- C 语言程序用 POSIX API 写的，跨 Unix 移植性最强
+- 招聘 JD 常写"熟悉 POSIX 标准"，说明对方在乎兼容性
 
-### POSIX包含什么
+### POSIX 包含什么
 
 ```
 POSIX.1  - 核心服务（系统调用、进程、文件）
@@ -509,7 +509,7 @@ POSIX.1c  - 线程
 POSIX.1d  - 进一步实时扩展
 ```
 
-### POSIX路径最大值
+### POSIX 路径最大值
 
 ```bash
 # POSIX要求：
@@ -521,7 +521,7 @@ $ getconf PATH_MAX /                # 路径最大长度
 4096
 ```
 
-### 实战：写POSIX兼容的Shell脚本
+### 实战：写 POSIX 兼容的 Shell 脚本
 
 ```bash
 #!/bin/sh
@@ -541,27 +541,27 @@ if [ -f /tmp/file ]; then
 fi
 ```
 
-> **生产环境的Shell脚本应该尽量POSIX兼容**，因为不同系统的`/bin/sh`可能链接到不同的Shell（dash、ash、ksh），不一定有bash。
+> **生产环境的 Shell 脚本应该尽量 POSIX 兼容**，因为不同系统的`/bin/sh`可能链接到不同的 Shell（dash、ash、ksh），不一定有 bash。
 
 ---
 
-## 1.10 GNU工具集：自由软件的基石
+## 1.10 GNU 工具集：自由软件的基石
 
-**一句话定义**：GNU（GNU's Not Unix）是1983年由Richard Stallman发起的项目，目标是创建一个完全自由的Unix兼容系统。Linux内核出现后与GNU工具集结合，形成"GNU/Linux"完整系统。
+**一句话定义**：GNU（GNU's Not Unix）是 1983 年由 Richard Stallman 发起的项目，目标是创建一个完全自由的 Unix 兼容系统。Linux 内核出现后与 GNU 工具集结合，形成"GNU/Linux"完整系统。
 
-### GNU核心组件
+### GNU 核心组件
 
 | 工具 | 替代了什么 | 用途 |
 |------|-----------|------|
-| **GCC** | cc | C/C++编译器 |
-| **glibc** | libc | C标准库 |
+| **GCC** | cc | C/C++ 编译器 |
+| **glibc** | libc | C 标准库 |
 | **coreutils** | ls, cp, mv, cat | 基础命令 |
 | **Bash** | sh | Shell |
 | **GNU Make** | make | 构建工具 |
 | **GDB** | dbx | 调试器 |
 | **Binutils** | ld, as | 链接器、汇编器 |
 
-### 验证：当前系统是否GNU/Linux？
+### 验证：当前系统是否 GNU/Linux？
 
 ```bash
 $ gcc --version
@@ -572,13 +572,13 @@ $ /lib/x86_64-linux-gnu/libc.so.6  # glibc版本信息
 GNU C Library (Ubuntu GLIBC 2.39-0ubuntu8) stable release version 2.39.
 ```
 
-### 关键GNU工具的"非GNU"替代品
+### 关键 GNU 工具的"非 GNU"替代品
 
-| GNU工具 | 非GNU替代 | 场景 |
+| GNU 工具 | 非 GNU 替代 | 场景 |
 |---------|-----------|------|
 | `grep` | `ripgrep (rg)` | 大文件搜索更快 |
 | `find` | `fd` | 语法更友好 |
-| `sed/awk` | `jq` (JSON) | JSON处理 |
+| `sed/awk` | `jq` (JSON) | JSON 处理 |
 | `ls/cat` | `eza/bat` | 现代化显示 |
 | `top/htop` | `btop` | 漂亮的系统监控 |
 
@@ -599,9 +599,9 @@ $ btop                                   # 全屏漂亮的资源监控
 
 ---
 
-## 1.11 引导流程：从按下电源到登录Shell
+## 1.11 引导流程：从按下电源到登录 Shell
 
-**一句话定义**：Linux启动 = 硬件自检 → 引导加载程序 → 内核 → init进程 → 用户登录。
+**一句话定义**：Linux 启动 = 硬件自检 → 引导加载程序 → 内核 → init 进程 → 用户登录。
 
 ### 完整引导流程图
 
@@ -626,15 +626,15 @@ $ btop                                   # 全屏漂亮的资源监控
 ### 各阶段详解
 
 **1. UEFI vs BIOS（启动源头）**
-- **UEFI**：现代标准，支持GPT分区、2TB+硬盘、安全启动（Secure Boot）
-- **BIOS**：传统老旧，MBR分区，最大2TB硬盘
+- **UEFI**：现代标准，支持 GPT 分区、2TB+ 硬盘、安全启动（Secure Boot）
+- **BIOS**：传统老旧，MBR 分区，最大 2TB 硬盘
 
 ```bash
 $ ls /sys/firmware/efi/                 # 存在=UEFI启动
 efi/                                    # 目录存在说明是UEFI
 ```
 
-**2. GRUB引导加载程序**
+**2. GRUB 引导加载程序**
 - 默认配置文件：`/boot/grub/grub.cfg`
 - 内核位置：`/boot/vmlinuz-*`
 - initramfs：`/boot/initrd.img-*`
@@ -648,9 +648,9 @@ config-6.6.21-linuxkit
 System.map-6.6.21-linuxkit
 ```
 
-**3. 内核与initramfs**
+**3. 内核与 initramfs**
 
-initramfs = 早期内存中的临时根文件系统，**含加载真实根FS所需的所有驱动**。
+initramfs = 早期内存中的临时根文件系统，**含加载真实根 FS 所需的所有驱动**。
 
 ```bash
 # 查看initramfs内容
@@ -671,9 +671,9 @@ BOOT_IMAGE=/boot/vmlinuz-6.6.21-linuxkit root=UUID=abc... ro quiet splash
         内核文件                                      根分区
 ```
 
-**4. systemd启动**
+**4. systemd 启动**
 - PID=1，第一个用户空间进程
-- 并行启动服务（不等A完才启B）
+- 并行启动服务（不等 A 完才启 B）
 - 启动失败自动重启
 
 ```bash
@@ -706,11 +706,11 @@ $ systemctl default            # 回到默认target
 
 ---
 
-## 1.12 init系统：第一个用户态进程
+## 1.12 init 系统：第一个用户态进程
 
-**一句话定义**：init是PID=1的进程，是所有其他进程的祖先，负责启动、管理和关闭系统服务。
+**一句话定义**：init 是 PID=1 的进程，是所有其他进程的祖先，负责启动、管理和关闭系统服务。
 
-### init系统演化史
+### init 系统演化史
 
 ```
 SysV init (1983-)              — 串行启动，慢
@@ -718,17 +718,17 @@ SysV init (1983-)              — 串行启动，慢
        └─ systemd (2010-)      — 并行启动，现代标准
 ```
 
-### systemd核心概念
+### systemd 核心概念
 
 | 概念 | 说明 |
 |------|------|
-| **Unit** | 配置单元（service, socket, target, mount等） |
+| **Unit** | 配置单元（service, socket, target, mount 等） |
 | **Service** | 系统服务（nginx, mysql） |
-| **Target** | 一组Unit的集合（类似runlevel） |
+| **Target** | 一组 Unit 的集合（类似 runlevel） |
 | **Socket** | 网络套接字，按需激活服务 |
-| **Timer** | 定时器（替代cron的部分功能） |
+| **Timer** | 定时器（替代 cron 的部分功能） |
 
-### 常用systemctl命令
+### 常用 systemctl 命令
 
 ```bash
 # 1. 服务管理
@@ -753,7 +753,7 @@ $ sudo systemctl reboot
 $ sudo systemctl poweroff
 ```
 
-### system v init的兼容模式
+### system v init 的兼容模式
 
 ```bash
 # 有些老脚本还在用service命令
@@ -772,9 +772,9 @@ systemctl_redirect ...                  # 最终调用systemctl
 
 ## 1.13 cgroups（控制组）：容器时代的资源基石
 
-**一句话定义**：cgroups是Linux内核特性，用于限制、统计、隔离进程组的资源使用（CPU、内存、IO、网络）。
+**一句话定义**：cgroups 是 Linux 内核特性，用于限制、统计、隔离进程组的资源使用（CPU、内存、IO、网络）。
 
-**为什么关键**：Docker/Kubernetes/Podman的底层就是cgroups+namespace。
+**为什么关键**：Docker/Kubernetes/Podman 的底层就是 cgroups+namespace。
 
 ### cgroups v1 vs v2
 
@@ -782,7 +782,7 @@ systemctl_redirect ...                  # 最终调用systemctl
 |------|-----------|-----------|
 | 引入时间 | 2007 | 2016（Linux 4.5+） |
 | 控制器 | 每个资源独立子系统 | 统一层级树 |
-| 容器支持 | 可用但有限 | **推荐**（Docker 20.10+/Podman默认） |
+| 容器支持 | 可用但有限 | **推荐**（Docker 20.10+/Podman 默认） |
 | 优势 | 兼容老系统 | 简单一致，资源控制更精准 |
 
 > ⚠️ **cgroups v2 兼容性注意**：现代发行版（RHEL 9, Ubuntu 22.04+）已全面默认使用 cgroups v2（统一层级树，解决 v1 嵌套冲突）。关键在于 cgroup 驱动配置——Docker 默认 cgroup 驱动为 `cgroupfs`，但 systemd 期望使用 `systemd` 驱动。驱动不匹配会导致资源限制不生效或容器启动失败。
@@ -808,7 +808,7 @@ cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,...)
 cgroup on /sys/fs/cgroup/memory type cgroup (rw,...)
 ```
 
-### 实战：限制进程CPU使用
+### 实战：限制进程 CPU 使用
 
 ```bash
 # 1. 创建cgroup（v2语法）
@@ -843,9 +843,9 @@ oom 0
 oom_kill 0
 ```
 
-### 用systemd限制服务资源
+### 用 systemd 限制服务资源
 
-systemd用`--slice`自动管理cgroups，更简单：
+systemd 用`--slice`自动管理 cgroups，更简单：
 
 ```bash
 # 编辑服务文件
@@ -867,22 +867,22 @@ MemoryMax=536870912
 
 ## 1.14 命名空间（Namespace）：容器的"视角隔离"
 
-**一句话定义**：Namespace让进程拥有独立的系统资源视图（进程、网络、文件系统等），感觉像在独立的OS里运行。
+**一句话定义**：Namespace 让进程拥有独立的系统资源视图（进程、网络、文件系统等），感觉像在独立的 OS 里运行。
 
-### 八种Namespace类型
+### 八种 Namespace 类型
 
 | Namespace | 隔离内容 | 应用场景 |
 |-----------|----------|----------|
-| **PID** | 进程ID | 容器内进程看不到主机进程 |
-| **Network** | 网络栈（IP、端口、路由） | 容器有独立IP |
+| **PID** | 进程 ID | 容器内进程看不到主机进程 |
+| **Network** | 网络栈（IP、端口、路由） | 容器有独立 IP |
 | **Mount** | 挂载点 | 容器有独立文件系统 |
-| **UTS** | 主机名/域名 | 容器有独立hostname |
+| **UTS** | 主机名/域名 | 容器有独立 hostname |
 | **IPC** | 进程间通信 | 容器有独立信号量/共享内存 |
-| **User** | 用户ID | 容器内root=主机普通用户 |
-| **Cgroup** | cgroup根 | 容器看到的cgroup层级 |
+| **User** | 用户 ID | 容器内 root=主机普通用户 |
+| **Cgroup** | cgroup 根 | 容器看到的 cgroup 层级 |
 | **Time** | 系统时间 | 容器可独立调整时间（Linux 5.6+） |
 
-### 实战：手动用unshare创建Namespace
+### 实战：手动用 unshare 创建 Namespace
 
 ```bash
 # 1. 创建新的PID namespace（子进程看不到主机进程）
@@ -924,7 +924,7 @@ Docker/Podman的`docker run`本质上就是自动化的`unshare`+cgroups+chroot�
 
 ## 1.15 虚拟文件系统（VFS）：一切皆文件的实现
 
-**一句话定义**：VFS是Linux内核的抽象层，定义统一接口，让用户用同一套系统调用（open/read/write）操作所有类型的"文件"——普通文件、目录、设备、管道、网络套接字。
+**一句话定义**：VFS 是 Linux 内核的抽象层，定义统一接口，让用户用同一套系统调用（open/read/write）操作所有类型的"文件"——普通文件、目录、设备、管道、网络套接字。
 
 ### "一切皆文件"举例
 
@@ -950,16 +950,16 @@ $ cat /proc/net/tcp                      # 查看所有TCP连接
 $ cat /sys/class/net/eth0/address        # 网卡MAC地址
 ```
 
-### VFS的四种主要实现
+### VFS 的四种主要实现
 
 | 文件系统类型 | 挂载点示例 | 特点 |
 |--------------|-----------|------|
-| **磁盘FS** (ext4, xfs) | `/`, `/home` | 持久化存储 |
-| **虚拟FS** (proc, sysfs) | `/proc`, `/sys` | 内核导出信息，内存中动态生成 |
-| **网络FS** (nfs, cifs) | `/mnt/nfs` | 远程服务器挂载 |
-| **伪FS** (tmpfs, devpts) | `/dev/shm`, `/dev/pts` | 内存/特殊用途 |
+| **磁盘 FS** (ext4, xfs) | `/`, `/home` | 持久化存储 |
+| **虚拟 FS** (proc, sysfs) | `/proc`, `/sys` | 内核导出信息，内存中动态生成 |
+| **网络 FS** (nfs, cifs) | `/mnt/nfs` | 远程服务器挂载 |
+| **伪 FS** (tmpfs, devpts) | `/dev/shm`, `/dev/pts` | 内存/特殊用途 |
 
-### 实战：从/proc读取系统信息
+### 实战：从/proc 读取系统信息
 
 ```bash
 # /proc是脚本获取系统信息的宝库
@@ -976,7 +976,7 @@ echo "内核版本: $(uname -r)"
 
 ## 1.16 sysctl：内核参数的运行时调优
 
-**一句话定义**：sysctl是在运行时查看/修改内核参数的命令，通过`/proc/sys/`虚拟文件系统实现。
+**一句话定义**：sysctl 是在运行时查看/修改内核参数的命令，通过`/proc/sys/`虚拟文件系统实现。
 
 ### 三大类常用参数
 
@@ -1029,7 +1029,7 @@ $ sudo sysctl -w net.core.default_qdisc=fq
 $ sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
 ```
 
-### sysctl配置文件规范
+### sysctl 配置文件规范
 
 ```
 /etc/sysctl.conf             — 传统单一文件
@@ -1044,7 +1044,7 @@ $ sudo sysctl --system
 $ sudo sysctl -p /etc/sysctl.d/99-custom.conf
 ```
 
-### 实战：Web服务器调优模板
+### 实战：Web 服务器调优模板
 
 ```bash
 # /etc/sysctl.d/99-webserver.conf
@@ -1076,15 +1076,15 @@ net.ipv4.tcp_congestion_control = bbr
 
 ## 1.17 initramfs：内核启动的"小跟班"
 
-**一句话定义**：initramfs是内核启动早期加载到内存的临时根文件系统，含有挂载真实根FS所需的驱动和工具。
+**一句话定义**：initramfs 是内核启动早期加载到内存的临时根文件系统，含有挂载真实根 FS 所需的驱动和工具。
 
-### 为什么需要initramfs？
+### 为什么需要 initramfs？
 
-**问题**：内核要挂载根FS（比如`/`在LVM上），但LVM驱动在内核外（作为模块加载）。内核怎么加载LVM驱动？→ 鸡生蛋问题。
+**问题**：内核要挂载根 FS（比如`/`在 LVM 上），但 LVM 驱动在内核外（作为模块加载）。内核怎么加载 LVM 驱动？→ 鸡生蛋问题。
 
-**解决**：initramfs预先把驱动打包到内存中的小根FS，内核用它加载驱动后再切换到真实根。
+**解决**：initramfs 预先把驱动打包到内存中的小根 FS，内核用它加载驱动后再切换到真实根。
 
-### initramfs结构
+### initramfs 结构
 
 ```bash
 # 看看initramfs里面有什么
@@ -1107,7 +1107,7 @@ init                                                    # 入口脚本
 # 3. pivot_root切换到真实根
 ```
 
-### 实战：重新生成initramfs
+### 实战：重新生成 initramfs
 
 ```bash
 # Ubuntu/Debian
@@ -1126,7 +1126,7 @@ $ sudo dracut --force /boot/initramfs-$(uname -r).img $(uname -r)
 # 4. 安装了新驱动模块
 ```
 
-### 故障：initramfs损坏导致无法启动
+### 故障：initramfs 损坏导致无法启动
 
 ```bash
 # 1. 启动时进入dracut emergency shell（黑屏+命令提示符）
@@ -1146,9 +1146,9 @@ dracut> chroot /sysroot
 
 ---
 
-## 1.18 运行时目录（/run）：现代Linux的运行时信息中枢
+## 1.18 运行时目录（/run）：现代 Linux 的运行时信息中枢
 
-**一句话定义**：`/run`是tmpfs（内存文件系统）挂载的目录，存放系统启动以来的运行时数据，重启后自动清空。
+**一句话定义**：`/run`是 tmpfs（内存文件系统）挂载的目录，存放系统启动以来的运行时数据，重启后自动清空。
 
 ### /run vs /var/run
 
@@ -1159,7 +1159,7 @@ lrwxrwxrwx 1 root root 4 /var/run -> /run
 # 历史包袱：旧版本叫/var/run，现在是/run
 ```
 
-### /run里有什么
+### /run 里有什么
 
 ```bash
 $ ls /run/
@@ -1174,13 +1174,13 @@ lock/                                # 锁文件
 utmp                                 # 当前登录用户（who命令读它）
 ```
 
-### 为什么用tmpfs？
+### 为什么用 tmpfs？
 
-1. **速度快**：内存访问比磁盘快1000倍
+1. **速度快**：内存访问比磁盘快 1000 倍
 2. **自动清理**：重启数据消失，不需要定期清理
 3. **早期可用**：系统启动早期`/var`还没挂载，`/run`已就绪
 
-### 实战：PID文件位置
+### 实战：PID 文件位置
 
 ```bash
 # 传统服务会在/var/run/写PID文件
@@ -1200,9 +1200,9 @@ $ cat /run/myapp.pid
 12345
 ```
 
-### /run的容量问题
+### /run 的容量问题
 
-`/run`默认只占内存的50%：
+`/run`默认只占内存的 50%：
 ```bash
 $ df -h /run
 Filesystem      Size  Used Avail Use% Mounted on
@@ -1242,7 +1242,7 @@ tmpfs /run tmpfs defaults,size=1G 0 0
 └─────────────────────────────────┘
 ```
 
-### 从电源到Shell的时间线
+### 从电源到 Shell 的时间线
 
 ```
 [电源] → UEFI/BIOS → GRUB → 内核 → initramfs → systemd → login
@@ -1252,7 +1252,7 @@ tmpfs /run tmpfs defaults,size=1G 0 0
 
 ### 给新人的学习路径
 
-1. **第一周**：熟练使用Bash，掌握`ls/cd/cp/mv/grep/find/ps/kill`
+1. **第一周**：熟练使用 Bash，掌握`ls/cd/cp/mv/grep/find/ps/kill`
 2. **第二周**：理解用户权限，掌握`chmod/chown/sudo`
 3. **第三周**：理解进程与服务，掌握`systemctl`
 4. **第四周**：理解文件系统，掌握`mount/df/du`
@@ -1270,13 +1270,13 @@ $ man proc                    # /proc详解
 
 ### 下一章预告
 
-**第二章：文件系统与目录结构** — FHS标准、inode、硬链接/软链接、ext4/XFS/Btrfs对比、LVM/RAID、Swap调优、/proc /sys /dev深度使用。
+**第二章：文件系统与目录结构** — FHS 标准、inode、硬链接/软链接、ext4/XFS/Btrfs 对比、LVM/RAID、Swap 调优、/proc /sys /dev 深度使用。
 
 ---
 
 > **本章字数**：约 18,500 字
 > **涉及命令**：uname, ps, free, lsblk, strace, sudo, systemctl, sysctl, dracut, update-initramfs
-> **内核版本基准**：Linux 6.6 LTS (2024年) + 6.10/6.12 进展
+> **内核版本基准**：Linux 6.6 LTS (2024 年) + 6.10/6.12 进展
 
 ---
 
@@ -1315,13 +1315,13 @@ $ man proc                    # /proc详解
 思路：ping 需要 CAP_NET_RAW。启动时添加 --cap-add=NET_RAW 即可。更优雅的做法是不用 ping，用 curl 或 nc 测试连通性。
 # 第二章：文件系统与目录结构
 
-> **本章定位**：Linux的"一切皆文件"哲学不是口号，而是从根目录到设备节点的统一设计。理解文件系统层次、inode机制、链接原理、挂载流程，你就掌握了Linux存储系统的完整图谱。
+> **本章定位**：Linux 的"一切皆文件"哲学不是口号，而是从根目录到设备节点的统一设计。理解文件系统层次、inode 机制、链接原理、挂载流程，你就掌握了 Linux 存储系统的完整图谱。
 
 ---
 
 ## 2.1 一切皆文件（Everything is a File）
 
-**一句话定义**：Unix/Linux的核心哲学——将所有系统资源抽象为文件，统一通过open/read/write/ioctl接口访问。
+**一句话定义**：Unix/Linux 的核心哲学——将所有系统资源抽象为文件，统一通过 open/read/write/ioctl 接口访问。
 
 ### 五大资源类型，都按文件操作
 
@@ -1373,12 +1373,12 @@ crw-rw-rw- 1 root tty      5,  0 Jul  2 10:00 /dev/tty     # 字符设备 (c)
 
 ### 为什么设计成"文件"？
 
-1. **统一接口**：同一套`open/read/write`处理所有IO
-2. **权限统一**：用rwx权限模型控制所有资源
-3. **编程简化**：写文件 = 写网络 = 写设备，都是fd
+1. **统一接口**：同一套`open/read/write`处理所有 IO
+2. **权限统一**：用 rwx 权限模型控制所有资源
+3. **编程简化**：写文件 = 写网络 = 写设备，都是 fd
 4. **组合管道**：`cat file | nc host`就是经典的"文件经管道发送"
 
-### 实战：/dev下的奇怪设备
+### 实战：/dev 下的奇怪设备
 
 ```bash
 # /dev/zero - 无限零字节流
@@ -1402,7 +1402,7 @@ $ cat < /dev/stdin                                # 从输入读
 
 ## 2.2 根目录（/）：文件系统的起点
 
-**一句话定义**：根目录`/`是Linux文件系统树状结构的顶层起点，所有文件、目录、设备都在它之下。
+**一句话定义**：根目录`/`是 Linux 文件系统树状结构的顶层起点，所有文件、目录、设备都在它之下。
 
 ```bash
 $ ls -la /
@@ -1429,7 +1429,7 @@ drwxr-xr-x  14 root root 4096 Jun 15 09:00 usr         # 用户程序
 drwxr-xr-x  11 root root 4096 Jul  2 09:00 var         # 可变数据
 ```
 
-**根目录的inode编号固定为2**（ext4/xfs通用），0号inode是保留的，1号inode是ext4的lost+found。
+**根目录的 inode 编号固定为 2**（ext4/xfs 通用），0 号 inode 是保留的，1 号 inode 是 ext4 的 lost+found。
 
 ### 根目录的硬性约束
 
@@ -1449,7 +1449,7 @@ drwxr-xr-x  11 root root 4096 Jul  2 09:00 var         # 可变数据
 
 ## 2.3 FHS：文件系统层次结构标准
 
-**一句话定义**：FHS（Filesystem Hierarchy Standard）规定Linux目录的布局和用途，让不同发行版保持兼容。
+**一句话定义**：FHS（Filesystem Hierarchy Standard）规定 Linux 目录的布局和用途，让不同发行版保持兼容。
 
 ### 必知目录速查表
 
@@ -1460,7 +1460,7 @@ drwxr-xr-x  11 root root 4096 Jul  2 09:00 var         # 可变数据
 | `/etc` | 配置文件 | 是 | passwd, hosts, nginx/ |
 | `/boot` | 引导文件 | 否 | vmlinuz, grub/, initrd |
 | `/home` | 用户家目录 | 是 | /home/alice |
-| `/root` | root家目录 | 是 | /root/.bashrc |
+| `/root` | root 家目录 | 是 | /root/.bashrc |
 | `/var` | 可变数据 | 是 | /var/log/, /var/lib/mysql |
 | `/tmp` | 临时文件 | 是 | 应用临时文件 |
 | `/usr` | 用户程序 | 否 | /usr/bin, /usr/lib |
@@ -1472,7 +1472,7 @@ drwxr-xr-x  11 root root 4096 Jul  2 09:00 var         # 可变数据
 | `/mnt` | 临时挂载点 | 是 | 手动挂载的临时盘 |
 | `/media` | 自动挂载的可移动设备 | 是 | /media/cdrom |
 
-### /usr vs /var vs /opt的本质区别
+### /usr vs /var vs /opt 的本质区别
 
 ```
 /usr  = 静态只读（系统级程序，几乎不变）
@@ -1504,7 +1504,7 @@ drwxr-xr-x  11 root root 4096 Jul  2 09:00 var         # 可变数据
 /opt/idea/
 ```
 
-### 现代变化（systemd时代）
+### 现代变化（systemd 时代）
 
 ```bash
 # 1. /bin和/sbin变成了/usr/bin和/usr/sbin的符号链接
@@ -1549,9 +1549,9 @@ $ man -k network                 # 模糊搜索所有网络相关man
 
 ## 2.4 inode：文件系统的"身份证"
 
-**一句话定义**：inode（index node）是文件系统中存储文件元数据的数据结构，每个文件/目录都有唯一inode。
+**一句话定义**：inode（index node）是文件系统中存储文件元数据的数据结构，每个文件/目录都有唯一 inode。
 
-### inode存储的信息
+### inode 存储的信息
 
 ```bash
 # 查看inode信息
@@ -1571,9 +1571,9 @@ Change: 2026-06-15 14:30:00.000000000 +0800
 # Access/Modify/Change: atime/mtime/ctime
 ```
 
-**inode不包含**：
+**inode 不包含**：
 - 文件名（文件名存在目录项里）
-- 文件内容（内容存在数据块里，inode只存数据块的指针）
+- 文件内容（内容存在数据块里，inode 只存数据块的指针）
 
 ### 文件名 vs inode
 
@@ -1596,7 +1596,7 @@ nginx  1234 root   5w  REG  8,2  500000  131142 /var/log/nginx/access.log (delet
 # 解决：让nginx重新打开日志文件（logrotate就是这样工作的）
 ```
 
-### inode数量限制
+### inode 数量限制
 
 ```bash
 # 1. 查看文件系统inode使用情况
@@ -1614,7 +1614,7 @@ $ df -i /                     # 这才是真相
 #    或使用xfs（xfs的inode按需分配，不预先固定）
 ```
 
-### 实战：inode耗尽排查
+### 实战：inode 耗尽排查
 
 ```bash
 # 场景：磁盘还有空间，但无法创建文件
@@ -1645,8 +1645,8 @@ $ sudo rm -rf /tmp/*.tmp        # 删除临时文件
 ## 2.5 硬链接 vs 软链接：链接的本质
 
 **一句话定义**：
-- **硬链接**：多个文件名指向**同一个inode**（共享数据，删除一个不影响）
-- **软链接（符号链接）**：一个文件存储**另一个文件的路径**（类似Windows快捷方式）
+- **硬链接**：多个文件名指向**同一个 inode**（共享数据，删除一个不影响）
+- **软链接（符号链接）**：一个文件存储**另一个文件的路径**（类似 Windows 快捷方式）
 
 ### 硬链接
 
@@ -1676,7 +1676,7 @@ $ ls -i hardlink.txt
 **硬链接特点**：
 - ✅ 节省磁盘（共享数据块）
 - ✅ 修改同步（任一处修改，所有链接都看到）
-- ❌ 不能跨文件系统（inode在不同FS不同）
+- ❌ 不能跨文件系统（inode 在不同 FS 不同）
 - ❌ 不能链接目录（防止循环引用）
 
 ### 软链接
@@ -1717,14 +1717,14 @@ $ ls logs                     # 等同于 ls /var/log
 | 维度 | 硬链接 | 软链接 |
 |------|--------|--------|
 | inode | 相同 | 不同 |
-| 跨FS | ❌ | ✅ |
+| 跨 FS | ❌ | ✅ |
 | 链接目录 | ❌ | ✅ |
 | 链接不存在 | ❌ | ✅ |
 | 原文件删除 | 数据还在 | 软链接失效 |
-| 占用空间 | 几乎0（仅一个目录项） | 路径字符串长度 |
+| 占用空间 | 几乎 0（仅一个目录项） | 路径字符串长度 |
 | 实际场景 | 备份/防误删 | 版本切换/快捷方式 |
 
-### 实战：find按链接类型
+### 实战：find 按链接类型
 
 ```bash
 # 查找所有软链接
@@ -1801,17 +1801,17 @@ tmpfs                /tmp       tmpfs   defaults,size=1G  0 0
 ```
 
 **字段详解**：
-1. **设备**：用UUID更稳定（磁盘位置变也不影响）
+1. **设备**：用 UUID 更稳定（磁盘位置变也不影响）
 2. **挂载点**：目录必须存在
-3. **FS类型**：ext4, xfs, nfs, tmpfs, iso9660等
+3. **FS 类型**：ext4, xfs, nfs, tmpfs, iso9660 等
 4. **选项**：逗号分隔
    - `defaults`：rw, suid, dev, exec, auto, nouser, async
    - `noexec`：禁止执行二进制
-   - `nosuid`：忽略setuid
+   - `nosuid`：忽略 setuid
    - `nofail`：设备不存在时不报错（云环境友好）
    - `ro`：只读
 5. **dump**：0=不备份，1=备份（基本淘汰）
-6. **fsck顺序**：0=不检查，1=根，2=其他
+6. **fsck 顺序**：0=不检查，1=根，2=其他
 
 ```bash
 # 1. 获取UUID
@@ -1863,9 +1863,9 @@ $ reboot
 
 ---
 
-## 2.7 ext4：Linux的"瑞士军刀"文件系统
+## 2.7 ext4：Linux 的"瑞士军刀"文件系统
 
-**一句话定义**：ext4是Linux最主流的日志文件系统，平衡了性能、稳定性和特性，是Ubuntu/Debian默认。
+**一句话定义**：ext4 是 Linux 最主流的日志文件系统，平衡了性能、稳定性和特性，是 Ubuntu/Debian 默认。
 
 ### 关键特性
 
@@ -1873,13 +1873,13 @@ $ reboot
 |------|------|
 | **最大文件** | 16TB（理论上 1EB） |
 | **最大分区** | 1EB |
-| **日志（journaling）** | 崩溃后快速恢复，避免长时间fsck |
-| **extents** | 用"起始块+长度"描述数据，减少碎片化 |
+| **日志（journaling）** | 崩溃后快速恢复，避免长时间 fsck |
+| **extents** | 用"起始块 + 长度"描述数据，减少碎片化 |
 | **多块分配** | 一次分配多个块，提高大文件性能 |
 | **延迟分配** | 写入时分配空间，提高连续性 |
 | **在线扩容** | resize2fs 在线扩到最大 |
 
-### 创建和检查ext4
+### 创建和检查 ext4
 
 ```bash
 # 1. 创建ext4文件系统
@@ -1913,7 +1913,7 @@ $ sudo e2fsck -p /dev/sdb1           # -p自动修复
 $ sudo tune2fs -O has_journal,extents,uninit_bg /dev/sdb1
 ```
 
-### 实战：扩容ext4
+### 实战：扩容 ext4
 
 ```bash
 # 场景：LVM逻辑卷扩容后，扩展ext4
@@ -1937,7 +1937,7 @@ Filesystem             Size  Used Avail Use% Mounted on
 
 ## 2.8 XFS：高性能的"老兵"
 
-**一句话定义**：XFS是SGI 1994年开发的64位日志文件系统，RHEL 7+默认，擅长大文件和高并发。
+**一句话定义**：XFS 是 SGI 1994 年开发的 64 位日志文件系统，RHEL 7+ 默认，擅长大文件和高并发。
 
 ### 关键特性
 
@@ -1951,10 +1951,10 @@ Filesystem             Size  Used Avail Use% Mounted on
 | 延迟分配 | ✅ | ✅ |
 | **分配组** | ❌ | ✅（多线程并发写入） |
 | 性能调优 | 一般 | **丰富**（xfs_db, xfs_fsr） |
-| 修复 | e2fsck慢 | xfs_repair快 |
+| 修复 | e2fsck 慢 | xfs_repair 快 |
 | 适合场景 | 通用 | 大文件/数据库/视频 |
 
-### 创建XFS
+### 创建 XFS
 
 ```bash
 # 1. 创建xfs文件系统
@@ -1981,7 +1981,7 @@ $ sudo mount -o uquota,gquota /dev/sdb1 /mnt/data
 $ xfs_quota -x -c 'limit bsoft=10g bhard=12g alice' /mnt/data
 ```
 
-### XFS工具集
+### XFS 工具集
 
 ```bash
 # 1. 碎片整理
@@ -2001,23 +2001,23 @@ $ xfs_info /dev/sdb1
 $ df -hT /mnt/data
 ```
 
-### XFS vs ext4实战选择
+### XFS vs ext4 实战选择
 
 | 场景 | 推荐 |
 |------|------|
-| 服务器根分区 | 都行（RHEL默认xfs） |
-| 数据库（MySQL/PG） | **xfs**（大文件+并发） |
+| 服务器根分区 | 都行（RHEL 默认 xfs） |
+| 数据库（MySQL/PG） | **xfs**（大文件 + 并发） |
 | 大量小文件 | ext4（小文件更友好） |
-| 视频/媒体存储 | **xfs**（顺序IO + 8EB支持） |
-| 容器overlay | ext4（Docker默认） |
+| 视频/媒体存储 | **xfs**（顺序 IO + 8EB 支持） |
+| 容器 overlay | ext4（Docker 默认） |
 | 个人电脑 | ext4（兼容性好） |
-| NAS存储 | **xfs**（性能 + 容量） |
+| NAS 存储 | **xfs**（性能 + 容量） |
 
 ---
 
 ## 2.9 Btrfs：写时复制的"未来"文件系统
 
-**一句话定义**：Btrfs（B-tree FS）借鉴ZFS思想，支持CoW（写时复制）、快照、子卷、压缩等高级特性，是Fedora和SUSE系列的默认根分区文件系统。⚠️ **RHEL 9/10不支持Btrfs**（默认及推荐均为XFS），仅Fedora/openSUSE/SLE/Ubuntu(可选)使用。
+**一句话定义**：Btrfs（B-tree FS）借鉴 ZFS 思想，支持 CoW（写时复制）、快照、子卷、压缩等高级特性，是 Fedora 和 SUSE 系列的默认根分区文件系统。⚠️ **RHEL 9/10 不支持 Btrfs**（默认及推荐均为 XFS），仅 Fedora/openSUSE/SLE/Ubuntu(可选) 使用。
 
 ### 关键特性
 
@@ -2025,17 +2025,17 @@ $ df -hT /mnt/data
 |------|------|
 | **CoW** | 写时复制，修改时复制原数据再写新数据 |
 | **快照** | 秒级创建，可写或只读 |
-| **子卷** | 独立挂载的B树根 |
+| **子卷** | 独立挂载的 B 树根 |
 | **压缩** | 透明压缩（zstd, lzo, zlib） |
-| **RAID** | 内置RAID 0/1/5/6/10 |
-| **校验和** | 数据+元数据checksum，自我修复 |
+| **RAID** | 内置 RAID 0/1/5/6/10 |
+| **校验和** | 数据 + 元数据 checksum，自我修复 |
 | **透明大页删除** | 高效处理稀疏文件 |
 | **在线扩容** | ✅ |
 | **在线缩容** | ❌（理论支持但工具未成熟） |
 | **去重** | 需要时启用（默认关闭） |
 | **send/receive** | 增量快照传输 |
 
-### Btrfs生产现状（2024-2026）
+### Btrfs 生产现状（2024-2026）
 
 | 发行版 | 状态 |
 |--------|------|
@@ -2044,12 +2044,12 @@ $ df -hT /mnt/data
 | **openSUSE Leap 15.4+** | ✅ 默认（配合 snapper 自动系统快照） |
 | **SUSE Linux Enterprise 15 SP4+** | ✅ 默认 |
 | **Debian 12** | 可选安装 |
-| **Ubuntu 24.04** | 可选安装（默认仍是ext4） |
-| **Arch** | 可选安装（Wiki详细支持文档） |
+| **Ubuntu 24.04** | 可选安装（默认仍是 ext4） |
+| **Arch** | 可选安装（Wiki 详细支持文档） |
 
-> **2026年生产判断**：Btrfs在Fedora/SUSE生态已成熟用于通用服务器/桌面。RHEL系列不支持，用XFS。极高并发OLTP数据库仍建议XFS或ext4。
+> **2026 年生产判断**：Btrfs 在 Fedora/SUSE 生态已成熟用于通用服务器/桌面。RHEL 系列不支持，用 XFS。极高并发 OLTP 数据库仍建议 XFS 或 ext4。
 
-### Btrfs实战
+### Btrfs 实战
 
 ```bash
 # 1. 创建Btrfs文件系统
@@ -2124,7 +2124,7 @@ Label: 'data'  uuid: abc-def
     devid    2 size 500.00GiB used 100.00GiB path /dev/sdc1
 ```
 
-### Btrfs自动修复
+### Btrfs 自动修复
 
 ```bash
 # 自动检测并修复损坏数据（依赖RAID1/10/5/6）
@@ -2144,7 +2144,7 @@ scrub status for /mnt/data
 
 **一句话定义**：LVM（Logical Volume Manager）将物理磁盘抽象为逻辑卷，支持在线扩容、缩容、快照，是企业存储的标配。
 
-### LVM三层架构
+### LVM 三层架构
 
 ```
 物理卷 (PV)            卷组 (VG)              逻辑卷 (LV)
@@ -2156,12 +2156,12 @@ scrub status for /mnt/data
 | 概念 | 英文 | 说明 |
 |------|------|------|
 | **PV** | Physical Volume | 物理磁盘或分区（初始化后） |
-| **VG** | Volume Group | 一个或多个PV组成的存储池 |
-| **LV** | Logical Volume | 从VG划分出的逻辑卷，相当于"虚拟分区" |
-| **PE** | Physical Extent | VG的最小分配单位，默认4MB |
-| **LE** | Logical Extent | LV的最小分配单位 |
+| **VG** | Volume Group | 一个或多个 PV 组成的存储池 |
+| **LV** | Logical Volume | 从 VG 划分出的逻辑卷，相当于"虚拟分区" |
+| **PE** | Physical Extent | VG 的最小分配单位，默认 4MB |
+| **LE** | Logical Extent | LV 的最小分配单位 |
 
-### LVM实战
+### LVM 实战
 
 ```bash
 # 1. 创建PV
@@ -2226,7 +2226,7 @@ $ sudo lvextend -L +50G -r /dev/vg0/data
 # 自动检测FS类型并扩容
 ```
 
-### LVM快照（备份/回滚）
+### LVM 快照（备份/回滚）
 
 ```bash
 # 1. 创建快照（占用空间很小，CoW机制）
@@ -2249,7 +2249,7 @@ $ sudo lvconvert --merge /dev/vg0/snap-data
 $ sudo lvremove /dev/vg0/snap-data
 ```
 
-### LVM灾难恢复
+### LVM 灾难恢复
 
 ```bash
 # 场景1：误删LVM分区 → 用LiveUSB恢复
@@ -2286,7 +2286,7 @@ $ sudo lvextend -l +100%FREE -r /dev/vg0/root
 $ df -h /                                # 验证
 ```
 
-### 实战：LVM扩容踩坑（生产教训）
+### 实战：LVM 扩容踩坑（生产教训）
 
 ```bash
 # 坑1：xfs_growfs 和 resize2fs 参数不同
@@ -2327,18 +2327,18 @@ $ sudo resize2fs /dev/vg0/home
 
 **一句话定义**：RAID（Redundant Array of Independent Disks）通过多块磁盘组合，实现性能提升或数据冗余。
 
-### 主流RAID级别对比
+### 主流 RAID 级别对比
 
-| RAID级别 | 冗余 | 性能 | 容量 | 最少磁盘 | 场景 |
+| RAID 级别 | 冗余 | 性能 | 容量 | 最少磁盘 | 场景 |
 |----------|------|------|------|----------|------|
 | **RAID 0** | ❌ | 最高 | 100% | 2 | 临时数据，追求速度 |
 | **RAID 1** | ✅（镜像） | 写慢，读快 | 50% | 2 | 系统盘，重要数据 |
 | **RAID 5** | ✅（单盘） | 读快，写一般 | (N-1)/N | 3 | 通用服务器 |
 | **RAID 6** | ✅（双盘） | 读快，写慢 | (N-2)/N | 4 | 大容量存储 |
 | **RAID 10** | ✅（多盘） | 高 | 50% | 4 | 数据库，高性能 |
-| **RAID 50** | ✅ | 较高 | (N-m)/N | 6 | 大容量+性能 |
+| **RAID 50** | ✅ | 较高 | (N-m)/N | 6 | 大容量 + 性能 |
 
-### 软RAID实战（mdadm）
+### 软 RAID 实战（mdadm）
 
 ```bash
 # 1. 安装mdadm
@@ -2377,7 +2377,7 @@ $ sudo update-initramfs -u          # Debian/Ubuntu
 $ echo "UUID=$(blkid -s UUID -o value /dev/md0) /mnt/data ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
 ```
 
-### RAID运维：故障恢复
+### RAID 运维：故障恢复
 
 ```bash
 # 1. 模拟磁盘故障（标记为失败）
@@ -2422,35 +2422,35 @@ Working Devices : 2
   Spare Devices : 0
 ```
 
-### 软RAID vs 硬RAID vs LVM RAID
+### 软 RAID vs 硬 RAID vs LVM RAID
 
-| 维度 | 软RAID (mdadm) | 硬RAID (RAID卡) | LVM RAID |
+| 维度 | 软 RAID (mdadm) | 硬 RAID (RAID 卡) | LVM RAID |
 |------|---------------|----------------|----------|
-| 性能 | 一般（吃CPU） | 最好（专用芯片） | 一般 |
+| 性能 | 一般（吃 CPU） | 最好（专用芯片） | 一般 |
 | 成本 | 免费 | 贵（硬件） | 免费 |
 | 灵活性 | 高 | 低（卡绑定） | 中等 |
-| 跨多OS | 通用 | 需同型号卡 | Linux only |
-| 适用 | 中小企业 | 大型数据库 | 已用LVM的场景 |
+| 跨多 OS | 通用 | 需同型号卡 | Linux only |
+| 适用 | 中小企业 | 大型数据库 | 已用 LVM 的场景 |
 
-> **现代推荐**：LVM on top of mdadm，或直接用LVM的raid1/raid5/raid6（Linux 3.10+）。
+> **现代推荐**：LVM on top of mdadm，或直接用 LVM 的 raid1/raid5/raid6（Linux 3.10+）。
 
 ---
 
 ## 2.12 Swap：内存不足的"应急位"
 
-**一句话定义**：Swap是磁盘上的交换空间（分区或文件），当物理内存不足时，内核将不活跃的内存页换出到Swap。
+**一句话定义**：Swap 是磁盘上的交换空间（分区或文件），当物理内存不足时，内核将不活跃的内存页换出到 Swap。
 
-### Swap类型
+### Swap 类型
 
 | 类型 | 性能 | 灵活性 | 推荐场景 |
 |------|------|--------|----------|
-| **Swap分区** | 最佳 | 低（创建后难调整） | 安装时规划 |
-| **Swap文件** | 略差 | 高（随时调大小） | 动态调整 |
+| **Swap 分区** | 最佳 | 低（创建后难调整） | 安装时规划 |
+| **Swap 文件** | 略差 | 高（随时调大小） | 动态调整 |
 | **zram** | 内存压缩 | - | 容器/无盘系统 |
 
-### 创建Swap
+### 创建 Swap
 
-**方式1：Swap分区（传统）**
+**方式 1：Swap 分区（传统）**
 
 ```bash
 # 1. 创建分区
@@ -2467,7 +2467,7 @@ $ sudo swapon /dev/sdb2
 $ echo "UUID=$(blkid -s UUID -o value /dev/sdb2) none swap sw 0 0" | sudo tee -a /etc/fstab
 ```
 
-**方式2：Swap文件（推荐，更灵活）**
+**方式 2：Swap 文件（推荐，更灵活）**
 
 ```bash
 # 1. 创建4GB的swap文件
@@ -2494,7 +2494,7 @@ $ sudo mkswap /swapfile
 $ sudo swapon /swapfile
 ```
 
-**方式3：zram（内存压缩）**
+**方式 3：zram（内存压缩）**
 
 ```bash
 # Ubuntu 22.04+默认启用
@@ -2535,18 +2535,18 @@ $ echo "vm.swappiness=10" | sudo tee /etc/sysctl.d/99-swap.conf
 $ sudo sysctl -p /etc/sysctl.d/99-swap.conf
 ```
 
-### Swap配置建议（2026年生产环境）
+### Swap 配置建议（2026 年生产环境）
 
-| 物理内存 | 建议Swap | 备注 |
+| 物理内存 | 建议 Swap | 备注 |
 |----------|----------|------|
 | < 2GB | 2x RAM | 内存太小 |
 | 2-8GB | 1x RAM | 传统建议 |
 | 8-64GB | 4-8GB | 足够应急 |
-| > 64GB | 0-4GB | Swap几乎不需要 |
+| > 64GB | 0-4GB | Swap 几乎不需要 |
 
 **数据库服务器**：
-- 关闭Swap或设置swappiness=1
-- 或分配小Swap防OOM（Nginx类反而可以多Swap）
+- 关闭 Swap 或设置 swappiness=1
+- 或分配小 Swap 防 OOM（Nginx 类反而可以多 Swap）
 
 ```bash
 # MySQL推荐：swappiness=1
@@ -2627,7 +2627,7 @@ $ readlink /proc/1/cwd
 /
 ```
 
-### 实战：通过/proc调优内核
+### 实战：通过/proc 调优内核
 
 ```bash
 # 1. 临时改TCP连接队列上限
@@ -2666,7 +2666,7 @@ Threads:  4
 
 ## 2.14 /sys：设备的管家
 
-**一句话定义**：`/sys`是sysfs虚拟文件系统，提供设备、驱动、电源、总线等硬件信息的统一视图，是udev的基础。
+**一句话定义**：`/sys`是 sysfs 虚拟文件系统，提供设备、驱动、电源、总线等硬件信息的统一视图，是 udev 的基础。
 
 ### 关键路径
 
@@ -2708,7 +2708,7 @@ $ ls /sys/bus/usb/devices/
 $ ls /sys/module/ext4/
 ```
 
-### 实战：通过/sys调优
+### 实战：通过/sys 调优
 
 ```bash
 # 1. 修改块设备调度器
@@ -2773,16 +2773,16 @@ crw-w---- 1 root tty  5, 1 Jul  2 10:00 /dev/console
 | `/dev/urandom` | 字符 | 伪随机数（不阻塞） |
 | `/dev/tty` | 字符 | 当前进程的终端 |
 | `/dev/console` | 字符 | 系统控制台 |
-| `/dev/pts/N` | 字符 | 伪终端（SSH登录） |
+| `/dev/pts/N` | 字符 | 伪终端（SSH 登录） |
 | `/dev/stdin` | 符号链接 | 标准输入（fd 0） |
 | `/dev/stdout` | 符号链接 | 标准输出（fd 1） |
 | `/dev/stderr` | 符号链接 | 标准错误（fd 2） |
-| `/dev/loopN` | 块 | 回环设备（挂载ISO） |
+| `/dev/loopN` | 块 | 回环设备（挂载 ISO） |
 | `/dev/sdX` | 块 | SATA/SCSI磁盘 |
 | `/dev/nvme0n1` | 块 | NVMe SSD |
-| `/dev/md0` | 块 | 软件RAID设备 |
+| `/dev/md0` | 块 | 软件 RAID 设备 |
 | `/dev/dm-N` | 块 | device-mapper（LVM） |
-| `/dev/shm` | tmpfs | 共享内存tmpfs |
+| `/dev/shm` | tmpfs | 共享内存 tmpfs |
 
 ### udev：动态设备管理
 
@@ -2808,7 +2808,7 @@ $ cat /etc/udev/rules.d/99-usb-backup.rules
 SUBSYSTEM=="block", ATTRS{serial}=="12345", SYMLINK+="usb_backup"
 ```
 
-### 实战：用dd测试磁盘
+### 实战：用 dd 测试磁盘
 
 ```bash
 # 1. 顺序写入测试（注意会覆盖目标）
@@ -2878,7 +2878,7 @@ rm: cannot remove '/tmp/alice.txt': Operation not permitted
 | 挂载 | tmpfs（内存） | 真实磁盘 |
 | 速度 | 极快 | 一般 |
 | 用途 | 应用临时数据 | 需重启保留的临时数据 |
-| 清理 | 立即 | 老系统有tmpwatch，新系统有systemd-tmpfiles |
+| 清理 | 立即 | 老系统有 tmpwatch，新系统有 systemd-tmpfiles |
 
 ```bash
 # systemd-tmpfiles：自动清理
@@ -2911,15 +2911,15 @@ backups  cache  lib  local  lock  log  mail  opt  run  spool  tmp
 |------|------|----------|
 | `/var/log` | 日志 | syslog, nginx/, mysql/ |
 | `/var/lib` | 应用状态数据 | mysql/, docker/, apt/ |
-| `/var/cache` | 缓存 | apt缓存, pip缓存, 字体缓存 |
+| `/var/cache` | 缓存 | apt 缓存，pip 缓存，字体缓存 |
 | `/var/spool` | 队列数据 | cron/, mail/, print/ |
 | `/var/mail` | 邮件队列 | 用户邮箱 |
 | `/var/lock` | 锁文件 | .LCK.. |
 | `/var/tmp` | 长期临时文件 | 应用临时数据 |
 | `/var/run` | → /run | 已弃用 |
-| `/var/backups` | 系统备份 | dpkg备份、shadow备份 |
+| `/var/backups` | 系统备份 | dpkg 备份、shadow 备份 |
 
-### 实战：/var/log日志管理
+### 实战：/var/log 日志管理
 
 ```bash
 # 1. 主流日志位置
@@ -2947,7 +2947,7 @@ $ find /var/log -type f -size +100M 2>/dev/null
 $ sudo logrotate -f /etc/logrotate.conf
 ```
 
-### 实战：/var/lib应用数据
+### 实战：/var/lib 应用数据
 
 ```bash
 # Docker
@@ -2974,7 +2974,7 @@ $ sudo logrotate -f /etc/logrotate.conf
 
 ## 2.18 /run 运行时数据
 
-**一句话定义**：`/run`是tmpfs挂载的临时目录，存放系统启动以来的运行时数据。
+**一句话定义**：`/run`是 tmpfs 挂载的临时目录，存放系统启动以来的运行时数据。
 
 ```bash
 # 1. 查看大小（默认50%内存）
@@ -2999,7 +2999,7 @@ alice    + tty1         2026-07-02 09:00
 bob      + pts/0        2026-07-02 09:30 (192.168.1.100)
 ```
 
-> 详细内容参见第一章1.18。
+> 详细内容参见第一章 1.18。
 
 ---
 
@@ -3100,13 +3100,13 @@ CMD ["/server"]
 思路：docker inspect <container_id> | jq '.[0].GraphDriver.Data.UpperDir'。这将显示该容器可写层的绝对路径。
 # 第三章：文件操作与权限
 
-> **本章定位**：Linux的权限模型是安全架构的基石。从`rwx`到ACL，从setuid到Linux Capabilities，理解这些才能真正掌控"谁能对什么做什么"。
+> **本章定位**：Linux 的权限模型是安全架构的基石。从`rwx`到 ACL，从 setuid 到 Linux Capabilities，理解这些才能真正掌控"谁能对什么做什么"。
 
 ---
 
 ## 3.1 文件权限（rwx）：三组三位
 
-**一句话定义**：Linux用9位二进制（3组×3位）表示文件权限，分别对应所有者、所属组、其他用户。
+**一句话定义**：Linux 用 9 位二进制（3 组×3 位）表示文件权限，分别对应所有者、所属组、其他用户。
 
 ### 权限结构详解
 
@@ -3276,7 +3276,7 @@ $ sudo chmod 644 /var/log/app.log
 
 ## 3.3 chown：修改所有者和组
 
-**一句话定义**：`chown`修改文件/目录的所有者(owner)和所属组(group)。
+**一句话定义**：`chown`修改文件/目录的所有者 (owner) 和所属组 (group)。
 
 ### 语法
 
@@ -3320,7 +3320,7 @@ drwxrwsr-x 4 root devteam 4096 Jul  2 10:00 /opt/projects/
 #          ↑  s是setgid位
 ```
 
-### 权限：只有root能改
+### 权限：只有 root 能改
 
 ```bash
 $ alice$ chown bob file.txt        # 报错
@@ -3350,7 +3350,7 @@ $ sudo find /var/www/html -type d -exec chmod 755 {} \;  # 目录755
 
 ## 3.4 chgrp：单独改组
 
-**一句话定义**：`chgrp`专门修改文件/目录的所属组（chown的子集）。
+**一句话定义**：`chgrp`专门修改文件/目录的所属组（chown 的子集）。
 
 ```bash
 # 语法
@@ -3384,7 +3384,7 @@ chgrp: changing group of 'file.txt': Operation not permitted
 
 ## 3.5 umask：默认权限的"减法器"
 
-**一句话定义**：umask是文件创建时的权限掩码，从系统默认权限中"减去"umask值，得到实际权限。
+**一句话定义**：umask 是文件创建时的权限掩码，从系统默认权限中"减去"umask 值，得到实际权限。
 
 ### 基础概念
 
@@ -3424,7 +3424,7 @@ $ touch testfile && ls -l testfile
 $ umask 0022
 ```
 
-### 安全的umask
+### 安全的 umask
 
 | umask | 文件默认 | 目录默认 | 场景 |
 |-------|----------|----------|------|
@@ -3450,7 +3450,7 @@ $ source ~/.bashrc
 umask 022
 ```
 
-### 实战：跨平台的umask问题
+### 实战：跨平台的 umask 问题
 
 ```bash
 # 场景：Docker容器中umask可能不是0022
@@ -3470,9 +3470,9 @@ $ docker run -e UMASK=0022 myapp
 
 ## 3.6 ACL：细粒度权限控制
 
-**一句话定义**：ACL（Access Control List）扩展了rwx三组模型，允许为特定用户或组单独设置权限。
+**一句话定义**：ACL（Access Control List）扩展了 rwx 三组模型，允许为特定用户或组单独设置权限。
 
-### 为什么需要ACL？
+### 为什么需要 ACL？
 
 ```bash
 # 场景：/opt/project 目录
@@ -3485,7 +3485,7 @@ $ docker run -e UMASK=0022 myapp
 # 用ACL可以精细控制
 ```
 
-### ACL实战
+### ACL 实战
 
 ```bash
 # 1. 检查文件系统是否支持ACL
@@ -3548,7 +3548,7 @@ other::r--
 $ setfacl -m m::rwx file
 ```
 
-### 实战：默认ACL（目录继承）
+### 实战：默认 ACL（目录继承）
 
 ```bash
 # 在目录上设default ACL，新文件/子目录自动继承
@@ -3573,14 +3573,14 @@ group:devteam:rw-
 # 自动继承！
 ```
 
-### ACL vs chmod对比
+### ACL vs chmod 对比
 
 | 维度 | chmod | ACL |
 |------|-------|-----|
 | 粒度 | 三组 | 任意用户/组 |
 | 适合 | 简单权限 | 复杂共享 |
 | 性能 | 略好 | 略差（额外查找） |
-| 兼容性 | POSIX | POSIX.1e（ext4/xfs/btrfs支持） |
+| 兼容性 | POSIX | POSIX.1e（ext4/xfs/btrfs 支持） |
 | 推荐 | 默认 | 复杂场景 |
 
 ---
@@ -3630,7 +3630,7 @@ $ ls -l /opt/shared/test.txt
 # 所属组自动是devteam（继承自目录）
 ```
 
-### 安全警告：setuid是安全重灾区
+### 安全警告：setuid 是安全重灾区
 
 ```bash
 # ⚠️ setuid程序是攻击者的目标
@@ -3711,7 +3711,7 @@ $ sudo chmod 1777 /var/www/upload/
 
 ## 3.9 chattr / lsattr：文件属性与不可变位
 
-**一句话定义**：`chattr`改变ext2/ext3/ext4文件系统的扩展属性，包括"不可变"、"仅追加"等高级保护。
+**一句话定义**：`chattr`改变 ext2/ext3/ext4 文件系统的扩展属性，包括"不可变"、"仅追加"等高级保护。
 
 ### 关键属性
 
@@ -3719,9 +3719,9 @@ $ sudo chmod 1777 /var/www/upload/
 |------|------|----------|
 | `a` | 只能追加（append-only） | 日志文件 |
 | `i` | 不可变（immutable） | 关键配置文件 |
-| `A` | 不更新atime | SSD优化 |
+| `A` | 不更新 atime | SSD 优化 |
 | `c` | 自动压缩 | 冷数据 |
-| `d` | 不备份到dump | dump备份 |
+| `d` | 不备份到 dump | dump 备份 |
 | `S` | 同步更新 | 数据安全 |
 | `u` | 删除时保留（undeletable） | 重要数据 |
 
@@ -3795,7 +3795,7 @@ done
 # 4. 加入systemd timer定期执行
 ```
 
-### chattr的限制
+### chattr 的限制
 
 ```bash
 # chattr仅适用于ext2/ext3/ext4
@@ -3814,11 +3814,11 @@ $ lsattr /var/lib/mysql/
 
 ---
 
-## 3.10 Linux Capabilities：精细化root权限
+## 3.10 Linux Capabilities：精细化 root 权限
 
-**一句话定义**：Linux Capabilities将root的"超级权限"拆分为独立的位（capability），程序可以只获得所需权限，最小化风险。
+**一句话定义**：Linux Capabilities 将 root 的"超级权限"拆分为独立的位（capability），程序可以只获得所需权限，最小化风险。
 
-### 为什么需要Capabilities？
+### 为什么需要 Capabilities？
 
 ```bash
 # 传统问题：让普通用户绑定80端口
@@ -3831,16 +3831,16 @@ $ sudo setcap cap_net_bind_service+ep /usr/bin/nginx
 # 只给"绑定<1024端口"的能力，没有其他root权限
 ```
 
-### 常用Capabilities
+### 常用 Capabilities
 
 | Capability | 权限 |
 |------------|------|
-| `CAP_NET_BIND_SERVICE` | 绑定<1024端口 |
-| `CAP_NET_RAW` | 使用RAW套接字（ping, tcpdump） |
+| `CAP_NET_BIND_SERVICE` | 绑定<1024 端口 |
+| `CAP_NET_RAW` | 使用 RAW 套接字（ping, tcpdump） |
 | `CAP_NET_ADMIN` | 网络管理（iptables, 路由） |
-| `CAP_SYS_ADMIN` | 大量管理操作（mount等） |
+| `CAP_SYS_ADMIN` | 大量管理操作（mount 等） |
 | `CAP_SYS_TIME` | 设置系统时间 |
-| `CAP_SYS_PTRACE` | ptrace其他进程（gdb attach） |
+| `CAP_SYS_PTRACE` | ptrace 其他进程（gdb attach） |
 | `CAP_DAC_OVERRIDE` | 绕过文件权限检查 |
 | `CAP_CHOWN` | 改变文件属主 |
 | `CAP_FOWNER` | 绕过属主权限检查 |
@@ -3848,7 +3848,7 @@ $ sudo setcap cap_net_bind_service+ep /usr/bin/nginx
 | `CAP_AUDIT_WRITE` | 写审计日志 |
 | `CAP_SYS_RESOURCE` | 资源限制覆盖 |
 | `CAP_MKNOD` | 创建设备文件 |
-| `CAP_SYS_RAWIO` | I/O权限操作 |
+| `CAP_SYS_RAWIO` | I/O 权限操作 |
 | `CAP_SYS_BOOT` | 重新启动系统 |
 
 完整列表：`man 7 capabilities`
@@ -3896,7 +3896,7 @@ $ setcap -r /usr/sbin/nginx
 # 恢复成无能力
 ```
 
-### 完整文件capability（自Linux 2.6.24）
+### 完整文件 capability（自 Linux 2.6.24）
 
 ```bash
 # Per-document capabilities（文件能力）的格式
@@ -3937,7 +3937,7 @@ $ capsh --decode=00000000a80425fb
 $ capsh --print
 ```
 
-### 实战：容器中Capabilities
+### 实战：容器中 Capabilities
 
 ```bash
 # Docker默认丢弃大量能力
@@ -3963,7 +3963,7 @@ $ docker run --cap-add=SYS_ADMIN ...
 
 ## 3.11 ls -l：看文件必备
 
-**一句话定义**：`ls -l`（长格式列出）是Linux查看文件信息的"瑞士军刀"。
+**一句话定义**：`ls -l`（长格式列出）是 Linux 查看文件信息的"瑞士军刀"。
 
 ### 输出字段详解
 
@@ -3981,7 +3981,7 @@ $ ls -l /etc/passwd
  └──── 文件类型
 ```
 
-### 常用ls选项
+### 常用 ls 选项
 
 ```bash
 # 长格式
@@ -4055,9 +4055,9 @@ $ ls -1 /opt/myapp/logs/ | awk -F. '{print $NF}' | sort | uniq -c | sort -rn
 
 ---
 
-## 3.12 find：Linux文件搜索之王
+## 3.12 find：Linux 文件搜索之王
 
-**一句话定义**：`find`是Linux最强大的文件搜索工具，支持按名称/类型/大小/时间/权限等条件递归查找。
+**一句话定义**：`find`是 Linux 最强大的文件搜索工具，支持按名称/类型/大小/时间/权限等条件递归查找。
 
 ### 基础语法
 
@@ -4142,7 +4142,7 @@ $ find / -size +1G -ls 2>/dev/null
 # 类似ls -l
 ```
 
-### 实战：find高级用法
+### 实战：find 高级用法
 
 ```bash
 # 1. 找大文件（>1GB）
@@ -4205,7 +4205,7 @@ $ locate -e nginx                   # 仅存在的文件
 
 **一句话定义**：`xargs`把标准输入的数据转换成命令行参数，解决"参数列表过长"问题。
 
-### 为什么需要xargs？
+### 为什么需要 xargs？
 
 ```bash
 # 1. 直接管道的问题
@@ -4253,7 +4253,7 @@ a b c
 $ find /tmp -name "*.log" | xargs -t rm
 ```
 
-### 实战：xargs经典案例
+### 实战：xargs 经典案例
 
 ```bash
 # 1. 批量重命名
@@ -4282,7 +4282,7 @@ $ find . -name "*.tmp" -print0 | xargs -0 rm -f
 $ find /var/log/myapp -name "*.log" | xargs -I {} gzip {}
 ```
 
-### 实战：xargs与find的-exec区别
+### 实战：xargs 与 find 的-exec 区别
 
 ```bash
 # 1. xargs：所有参数一次传给命令
@@ -4310,7 +4310,7 @@ $ find . -name "*.txt" -exec rm {} +
 
 **一句话定义**：`sort`对文本行排序；`uniq`去重（必须先排序）。
 
-### sort基础
+### sort 基础
 
 ```bash
 # 1. 默认字典序
@@ -4340,7 +4340,7 @@ $ sort -f file.txt                # 忽略大小写
 $ sort -d file.txt                # 仅字母数字，忽略标点
 ```
 
-### uniq基础
+### uniq 基础
 
 ```bash
 # 1. 必须先排序（uniq只比较相邻行）
@@ -4535,7 +4535,7 @@ $ find / -perm 0777 -type d 2>/dev/null
 思路：`find /var/log -type f -name '*.log' -size +100M -mtime +30 -print0 | xargs -0 gzip`。`-print0` 与 `xargs -0` 配合，以 NUL 分隔文件名，可安全处理含空格或特殊字符的路径。
 # 第四章：进程与作业管理
 
-> **本章定位**：进程是Linux运行的实体。理解进程的生命周期、父子关系、状态转换，掌握ps/top/htop/kill的实战用法，你就从"会用Linux"升级为"懂Linux运行机制"。
+> **本章定位**：进程是 Linux 运行的实体。理解进程的生命周期、父子关系、状态转换，掌握 ps/top/htop/kill 的实战用法，你就从"会用 Linux"升级为"懂 Linux 运行机制"。
 
 ---
 
@@ -4647,22 +4647,22 @@ LANG=en_US.UTF-8
 
 ## 4.2 守护进程（Daemon）：后台服务
 
-**一句话定义**：守护进程是脱离终端控制、在后台持续运行的服务进程（如sshd、nginx、cron）。
+**一句话定义**：守护进程是脱离终端控制、在后台持续运行的服务进程（如 sshd、nginx、cron）。
 
 ### 守护进程的"出生"流程
 
 ```c
-// 经典daemon化代码（简化版）
+// 经典 daemon 化代码（简化版）
 1. fork()              // 父进程退出，子进程成为孤儿
 2. setsid()            // 创建新会话，脱离原终端
 3. fork() again        // 防止重新获得终端
 4. chdir("/")          // 切换工作目录
-5. umask(0)            // 重设umask
-6. close(0/1/2)        // 关闭标准IO
+5. umask(0)            // 重设 umask
+6. close(0/1/2)        // 关闭标准 IO
 7. open /dev/null as stdin/stdout/stderr
 ```
 
-### systemd时代的守护进程
+### systemd 时代的守护进程
 
 ```bash
 # 现代daemon几乎都由systemd管理
@@ -4747,7 +4747,7 @@ $ ps -o pid,sid,cmd -p $(pgrep nginx)
 
 ## 4.3 PID：进程的身份证号
 
-**一句话定义**：PID（Process ID）是系统为每个进程分配的唯一正整数，从1开始。
+**一句话定义**：PID（Process ID）是系统为每个进程分配的唯一正整数，从 1 开始。
 
 ```bash
 # 1. PID范围
@@ -4774,7 +4774,7 @@ $ renice -n 5 -p 1234     # 调整优先级
 $ cat /proc/1234/status   # 查看状态
 ```
 
-### PID复用
+### PID 复用
 
 ```bash
 # PID不会立即复用
@@ -4791,7 +4791,7 @@ $ ps -e --no-headers | awk '{print $1}' | sort -n | tail
 
 ## 4.4 PPID：父进程关系
 
-**一句话定义**：PPID（Parent PID）是创建当前进程的父进程ID，所有进程形成树状结构，根是init（PID=1）。
+**一句话定义**：PPID（Parent PID）是创建当前进程的父进程 ID，所有进程形成树状结构，根是 init（PID=1）。
 
 ```bash
 # 1. 查看进程的PPID
@@ -4846,7 +4846,7 @@ $ kill -9 5000             # 强制
 
 ## 4.5 僵尸进程（Zombie）：已死未埋
 
-**一句话定义**：僵尸进程是已终止但未被父进程`wait()`回收的进程，仍占PID资源但不占CPU/内存。
+**一句话定义**：僵尸进程是已终止但未被父进程`wait()`回收的进程，仍占 PID 资源但不占 CPU/内存。
 
 ### 产生原因
 
@@ -4900,7 +4900,7 @@ $ kill 5000
 ### 避免产生僵尸
 
 ```python
-# Python示例：父进程处理SIGCHLD
+# Python 示例：父进程处理 SIGCHLD
 import signal
 import os
 
@@ -4918,7 +4918,7 @@ signal.signal(signal.SIGCHLD, reap_zombies)
 ```
 
 ```c
-// C示例
+// C 示例
 struct sigaction sa;
 sa.sa_handler = sigchld_handler;
 sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
@@ -4928,9 +4928,9 @@ sigaction(SIGCHLD, &sa, NULL);
 
 ---
 
-## 4.6 孤儿进程：被init收养的娃
+## 4.6 孤儿进程：被 init 收养的娃
 
-**一句话定义**：孤儿进程是父进程先于子进程终止的进程，会被init（PID=1）自动收养。
+**一句话定义**：孤儿进程是父进程先于子进程终止的进程，会被 init（PID=1）自动收养。
 
 ```bash
 # 1. 演示
@@ -5055,7 +5055,7 @@ $ ps -eo pid,stat,cmd
 |------|------|
 | `R` | Running，运行或就绪 |
 | `S` | Sleeping，可中断睡眠（等待事件） |
-| `D` | Disk sleep，不可中断睡眠（通常在等IO） |
+| `D` | Disk sleep，不可中断睡眠（通常在等 IO） |
 | `Z` | Zombie，僵尸 |
 | `T` | Stopped，停止（SIGSTOP） |
 | `t` | Tracing，被调试器暂停 |
@@ -5065,7 +5065,7 @@ $ ps -eo pid,stat,cmd
 | `W` | Waking，唤醒中 |
 | `P` | Parked，parked |
 
-### 实战：ps高级过滤
+### 实战：ps 高级过滤
 
 ```bash
 # 1. 找CPU占用最高的进程
@@ -5131,13 +5131,13 @@ W - 保存配置
 q - 退出
 ```
 
-**top输出解读**：
-- `load average: 0.50 0.40 0.30` - 1/5/15分钟平均负载
-  - 1.0 = 满载（1个CPU）
-  - 4核CPU的"健康"上限是4.0
-  - 持续 > CPU数 = 过载
-- `%Cpu(s): 5.0 us` - 用户态CPU
-  - `us` 用户态、`sy` 内核态、`ni` nice进程、`id` 空闲、`wa` IO等待
+**top 输出解读**：
+- `load average: 0.50 0.40 0.30` - 1/5/15 分钟平均负载
+  - 1.0 = 满载（1 个 CPU）
+  - 4 核 CPU 的"健康"上限是 4.0
+  - 持续 > CPU 数 = 过载
+- `%Cpu(s): 5.0 us` - 用户态 CPU
+  - `us` 用户态、`sy` 内核态、`ni` nice 进程、`id` 空闲、`wa` IO 等待
   - `wa` 高 = 磁盘瓶颈
 - `MiB Mem: ... buff/cache` - 缓冲缓存，可回收
 
@@ -5153,7 +5153,7 @@ $ top -p $(pgrep -d',' nginx)
 # 监控所有nginx进程
 ```
 
-### htop：top的增强版
+### htop：top 的增强版
 
 ```bash
 # 安装
@@ -5214,7 +5214,7 @@ LOGGENERATIONS=30
 
 ## 4.9 信号（Signal）：进程间通信的基础
 
-**一句话定义**：信号是Linux进程间异步通信机制，1-64个信号用于通知进程发生特定事件（如Ctrl+C = SIGINT）。
+**一句话定义**：信号是 Linux 进程间异步通信机制，1-64 个信号用于通知进程发生特定事件（如 Ctrl+C = SIGINT）。
 
 ### 常用信号速查（详见`kill -l`）
 
@@ -5224,21 +5224,21 @@ LOGGENERATIONS=30
 | **SIGINT** | 2 | 终止 | Ctrl+C |
 | **SIGQUIT** | 3 | Core | Ctrl+\\ |
 | **SIGKILL** | 9 | 终止 | **强制杀（不可捕获）** |
-| **SIGTERM** | 15 | 终止 | 优雅终止（kill默认） |
+| **SIGTERM** | 15 | 终止 | 优雅终止（kill 默认） |
 | **SIGCHLD** | 17 | 忽略 | 子进程退出 |
 | **SIGCONT** | 18 | 继续 | 恢复暂停 |
 | **SIGSTOP** | 19 | 暂停 | **强制暂停（不可捕获）** |
 | **SIGTSTP** | 20 | 暂停 | Ctrl+Z |
-| **SIGUSR1** | 10 | 终止 | 用户自定义1 |
-| **SIGUSR2** | 12 | 终止 | 用户自定义2 |
+| **SIGUSR1** | 10 | 终止 | 用户自定义 1 |
+| **SIGUSR2** | 12 | 终止 | 用户自定义 2 |
 | **SIGPIPE** | 13 | 终止 | 管道破裂 |
-| **SIGALRM** | 14 | 终止 | alarm()超时 |
+| **SIGALRM** | 14 | 终止 | alarm() 超时 |
 | **SIGSEGV** | 11 | Core | 段错误 |
 
 ### 实战：信号处理
 
 ```python
-# Python：优雅处理SIGTERM
+# Python：优雅处理 SIGTERM
 import signal
 import sys
 
@@ -5379,7 +5379,7 @@ $ pkill -u guest
 # 用户guest的所有进程被清理
 ```
 
-### pgrep：按名字查PID
+### pgrep：按名字查 PID
 
 ```bash
 # 1. 基础
@@ -5413,7 +5413,7 @@ $ pgrep -c nginx
 
 ## 4.11 nice / renice：进程优先级
 
-**一句话定义**：nice值是进程的"礼貌程度"，值越高越"谦让"（优先级越低）；值越低越"贪婪"（优先级越高）。
+**一句话定义**：nice 值是进程的"礼貌程度"，值越高越"谦让"（优先级越低）；值越低越"贪婪"（优先级越高）。
 
 ### 取值范围
 
@@ -5471,7 +5471,7 @@ $ sudo renice -n -5 -p $(pgrep mysqld)
 $ ps -o pid,nice,cmd -u alice
 ```
 
-### 实战：nice的合理使用
+### 实战：nice 的合理使用
 
 ```bash
 # 场景1：服务器跑批时影响前端
@@ -5496,7 +5496,7 @@ $ sudo systemd-run --nice=19 ./build.sh
 
 ## 4.12 前台/后台作业（Jobs）
 
-**一句话定义**：作业是Shell的逻辑单位，单个命令或管道；前台作业占用终端，后台作业不占用。
+**一句话定义**：作业是 Shell 的逻辑单位，单个命令或管道；前台作业占用终端，后台作业不占用。
 
 ### 基础操作
 
@@ -5581,9 +5581,9 @@ $ ps -o pid,ppid,pgid,sid,cmd -p $(pgrep long_task)
 
 ---
 
-## 4.13 nohup：免疫SIGHUP
+## 4.13 nohup：免疫 SIGHUP
 
-**一句话定义**：`nohup`让进程忽略SIGHUP信号，关闭终端不退出。
+**一句话定义**：`nohup`让进程忽略 SIGHUP 信号，关闭终端不退出。
 
 ```bash
 # 1. 基本用法
@@ -5629,7 +5629,7 @@ $ disown
 $ exit                       # 关掉SSH，训练继续
 ```
 
-### 为什么systemd不再用nohup？
+### 为什么 systemd 不再用 nohup？
 
 ```bash
 # systemd service比nohup更靠谱
@@ -5722,7 +5722,7 @@ Ctrl+B, d
 # 重连后还在
 ```
 
-### tmux配置文件
+### tmux 配置文件
 
 ```bash
 # ~/.tmux.conf
@@ -5772,7 +5772,7 @@ $ screen -S shared
 $ screen -x shared              # -x 是附加而非创建
 ```
 
-### 实战：tmux + SSH保活
+### 实战：tmux + SSH 保活
 
 ```bash
 # 场景：SSH连接不稳定，tmux保住作业
@@ -5834,7 +5834,7 @@ fi
 | 看作业 | `jobs` |
 | 等所有 | `wait` |
 | 杀当前 | `Ctrl+C` |
-| 退出shell | `exit` |
+| 退出 shell | `exit` |
 
 ### 应急流程
 
@@ -5904,13 +5904,13 @@ $ ps -eo pid,ppid,stat,cmd | awk '$3~/Z/'
 思路：tmux new -s train → 执行 python train.py → 按 Ctrl+B 再按 D 脱离。重连时 tmux attach -t train。
 # 第五章：网络基础与配置
 
-> **本章定位**：网络是Linux服务器的命脉。从IP子网到TCP握手，从ss/netstat到防火墙规则，本章覆盖运维必须掌握的网络诊断和配置技能。
+> **本章定位**：网络是 Linux 服务器的命脉。从 IP 子网到 TCP 握手，从 ss/netstat 到防火墙规则，本章覆盖运维必须掌握的网络诊断和配置技能。
 
 ---
 
-## 5.1 IP地址与子网掩码
+## 5.1 IP 地址与子网掩码
 
-**一句话定义**：IP地址是网络设备的"门牌号"，子网掩码定义了"哪个范围是邻居、哪个范围要出门找路由"。
+**一句话定义**：IP 地址是网络设备的"门牌号"，子网掩码定义了"哪个范围是邻居、哪个范围要出门找路由"。
 
 ### IPv4 vs IPv6
 
@@ -5935,7 +5935,7 @@ $ ip addr show eth0
 
 | CIDR | 子网掩码 | 可用地址数 | 典型场景 |
 |------|----------|-----------|----------|
-| `/8` | 255.0.0.0 | 16,777,214 | 大型ISP |
+| `/8` | 255.0.0.0 | 16,777,214 | 大型 ISP |
 | `/16` | 255.255.0.0 | 65,534 | 大型企业 |
 | `/24` | 255.255.255.0 | 254 | 标准子网 |
 | `/25` | 255.255.255.128 | 126 | 中型子网 |
@@ -5943,7 +5943,7 @@ $ ip addr show eth0
 | `/30` | 255.255.255.252 | 2 | 点对点链路 |
 | `/32` | 255.255.255.255 | 1 | 单主机 |
 
-### 理解CIDR
+### 理解 CIDR
 
 ```bash
 # 192.168.1.100/24
@@ -5965,7 +5965,7 @@ Broadcast: 192.168.1.255
 Hosts/Net: 254             
 ```
 
-### 实战：IP配置
+### 实战：IP 配置
 
 ```bash
 # 1. 查看所有接口IP
@@ -6014,20 +6014,20 @@ default via 192.168.1.1 dev eth0 proto static   # 默认网关
 
 ## 5.2 TCP/UDP：传输层双雄
 
-**一句话定义**：TCP面向连接、可靠；UDP无连接、快速。理解它们的区别是网络编程和故障排查的基础。
+**一句话定义**：TCP 面向连接、可靠；UDP 无连接、快速。理解它们的区别是网络编程和故障排查的基础。
 
 ### 对比表
 
 | 维度 | TCP | UDP |
 |------|-----|-----|
 | 连接 | 需要三次握手 | 无连接 |
-| 可靠性 | 确认+重传+顺序 | 无 |
+| 可靠性 | 确认 + 重传 + 顺序 | 无 |
 | 速度 | 慢（有开销） | 快 |
 | 流控 | 拥塞控制 | 无 |
-| 头部大小 | 20字节 | 8字节 |
+| 头部大小 | 20 字节 | 8 字节 |
 | 场景 | HTTP、SSH、MySQL | DNS、视频流、游戏 |
 
-### TCP状态机（运维必需）
+### TCP 状态机（运维必需）
 
 ```bash
 # 查看TCP状态统计
@@ -6054,7 +6054,7 @@ net.ipv4.tcp_fin_timeout = 60           # 默认60秒
 # 启用复用：sysctl -w net.ipv4.tcp_tw_reuse=1
 ```
 
-### 实战：用tcpdump看三次握手
+### 实战：用 tcpdump 看三次握手
 
 ```bash
 # 三次握手
@@ -6074,7 +6074,7 @@ $ sudo tcpdump -i eth0 -nn 'tcp and host 93.184.216.34' | grep -E 'Flags'
 # → 客户端进入TIME_WAIT 2MSL（≈60秒）
 ```
 
-### UDP实战
+### UDP 实战
 
 > **🧭 延伸阅读**：本章讨论的 TCP 拥塞控制默认算法是 CUBIC（基于丢包），但现代跨数据中心场景下，**Google 推出的 BBR 算法通过主动探测带宽和延迟**，吞吐量可提升 15%-20%。Linux 4.9+ 已支持 BBR，6.x 版本引入的 BBR v3 进一步优化了多流公平性。详见**第十三章 13.3 节**。
 
@@ -6095,9 +6095,9 @@ $ dig +short google.com @8.8.8.8
 
 ## 5.3 ss / netstat：连接查看器
 
-**一句话定义**：`ss`（socket statistics）是现代Linux查看网络连接的工具，比`netstat`快10倍（读取内核直接数据结构，无需遍历/proc）。
+**一句话定义**：`ss`（socket statistics）是现代 Linux 查看网络连接的工具，比`netstat`快 10 倍（读取内核直接数据结构，无需遍历/proc）。
 
-### ss常用组合
+### ss 常用组合
 
 ```bash
 # 1. 所有TCP连接（最常用）
@@ -6148,7 +6148,7 @@ $ watch -n 1 'ss -tan | head -20'
 | 速度 | 很快（内核直接读） | 慢（遍历/proc） |
 | 输出 | 简洁 | 详细 |
 | 推荐 | ✅ 现代标准 | ❌ 已淘汰但还在用 |
-| 安装 | 内置（iproute2） | 需net-tools包 |
+| 安装 | 内置（iproute2） | 需 net-tools 包 |
 
 ```bash
 # netstat习惯用法（新系统可能没装）
@@ -6159,9 +6159,9 @@ $ netstat -an | grep 80         # 等价ss -tan | grep :80
 
 ---
 
-## 5.4 DNS解析
+## 5.4 DNS 解析
 
-**一句话定义**：DNS（Domain Name System）将域名翻译为IP地址，是互联网的"电话簿"。
+**一句话定义**：DNS（Domain Name System）将域名翻译为 IP 地址，是互联网的"电话簿"。
 
 ### 解析链路
 
@@ -6219,7 +6219,7 @@ $ host google.com
 google.com has address 142.250.80.46
 ```
 
-### DNS配置文件
+### DNS 配置文件
 
 ```bash
 # /etc/resolv.conf - DNS解析器配置
@@ -6240,7 +6240,7 @@ hosts:          files dns
 # 先查/etc/hosts，再查DNS
 ```
 
-### 实战：DNS问题排查
+### 实战：DNS 问题排查
 
 ```bash
 # 场景：ping不通域名但能ping通IP
@@ -6267,7 +6267,7 @@ $ curl -v --dns-servers 8.8.8.8 https://google.com  # curl指定DNS
 
 ## 5.5 curl / wget：网络客户端
 
-### curl：全能URL传输器
+### curl：全能 URL 传输器
 
 ```bash
 # 1. GET请求（默认）
@@ -6342,10 +6342,10 @@ $ wget --tries=5 --retry-connrefused https://unstable-server.com/file
 
 | 场景 | curl | wget |
 |------|------|------|
-| API交互 | ✅ 首选 | ❌ |
+| API 交互 | ✅ 首选 | ❌ |
 | 大文件下载 | 一般 | ✅ 续传 |
 | 镜像网站 | ❌ | ✅ |
-| 查看HTTP头 | ✅ `-I` | ❌ |
+| 查看 HTTP 头 | ✅ `-I` | ❌ |
 | 递归下载 | ❌ | ✅ |
 | 默认安装 | ✅ (大多数) | ❌ 需安装 |
 
@@ -6504,9 +6504,9 @@ ss -tan | awk '{print $1}' | sort | uniq -c | sort -rn | head -5
 
 ---
 
-## 5.7 iptables / nftables：Linux防火墙
+## 5.7 iptables / nftables：Linux 防火墙
 
-**一句话定义**：`iptables`是传统Linux防火墙；`nftables`是新标准（Linux 3.13+），语法更现代。
+**一句话定义**：`iptables`是传统 Linux 防火墙；`nftables`是新标准（Linux 3.13+），语法更现代。
 
 ### 关键概念
 
@@ -6516,7 +6516,7 @@ ss -tan | awk '{print $1}' | sort | uniq -c | sort -rn | head -5
                            本机进程？ → INPUT → 本机 → OUTPUT
 ```
 
-### iptables速查
+### iptables 速查
 
 ```bash
 # 1. 查看规则
@@ -6586,7 +6586,7 @@ $ sudo systemctl enable nftables
 $ sudo systemctl start nftables
 ```
 
-### 实战：防DDoS限速规则
+### 实战：防 DDoS 限速规则
 
 ```bash
 # iptables limit模块
@@ -6760,13 +6760,13 @@ network:
 思路：netstat 遍历 /proc/net/（慢，文件系统开销）；ss 直接通过 netlink 内核接口读取（快，开销小）。
 # 第六章：用户与组管理
 
-> **本章定位**：用户和组是多用户系统的基石。从创建用户到PAM认证，从密码策略到sudo权限，本章覆盖系统管理员最核心的日常工作。
+> **本章定位**：用户和组是多用户系统的基石。从创建用户到 PAM 认证，从密码策略到 sudo 权限，本章覆盖系统管理员最核心的日常工作。
 
 ---
 
 ## 6.1 用户（User）：系统的"居民"
 
-**一句话定义**：Linux中的用户 = UID + home目录 + shell + 密码 + 组成员。
+**一句话定义**：Linux 中的用户 = UID + home 目录 + shell + 密码 + 组成员。
 
 ### 用户文件
 
@@ -6789,9 +6789,9 @@ alice:$y$j9T$Ab3...:19570:0:99999:7:::
 # 格式：用户名:加密密码:最后修改:最小寿命:最大寿命:警告:不活动:过期
 ```
 
-### UID分类
+### UID 分类
 
-| UID范围 | 类型 | 说明 |
+| UID 范围 | 类型 | 说明 |
 |---------|------|------|
 | 0 | root | 超级管理员 |
 | 1-999 | 系统用户 | 服务账号（不可登录） |
@@ -7070,9 +7070,9 @@ echo "2. 如需要,添加到附加组: sudo usermod -aG docker $USERNAME"
 
 ## 6.6 PAM：可插拔认证模块
 
-**一句话定义**：PAM（Pluggable Authentication Modules）是Linux认证框架，所有需要认证的服务（SSH、sudo、login）都通过它。
+**一句话定义**：PAM（Pluggable Authentication Modules）是 Linux 认证框架，所有需要认证的服务（SSH、sudo、login）都通过它。
 
-### PAM配置结构
+### PAM 配置结构
 
 ```bash
 # /etc/pam.d/ 目录下的文件
@@ -7173,7 +7173,7 @@ $ sudo awk -F: '{print $3}' /etc/passwd | sort -n | uniq -d
 
 ### 下一章预告
 
-**第七章：服务管理与systemd** — Unit文件编写、target/runlevel、journalctl日志、定时器、资源限制。
+**第七章：服务管理与 systemd** — Unit 文件编写、target/runlevel、journalctl 日志、定时器、资源限制。
 
 ---
 
@@ -7222,17 +7222,17 @@ www-data hard nproc 100
 www-data soft nofile 65535
 www-data hard nofile 65535
 ```
-# 第七章：服务管理与systemd（增强版）
+# 第七章：服务管理与 systemd（增强版）
 
-> **本章定位**：systemd是现代Linux的服务管理器，理解Unit文件编写、依赖解析、资源限制和journalctl是运维基本功。本章从"会用systemctl"升级到"精通systemd架构"。
+> **本章定位**：systemd 是现代 Linux 的服务管理器，理解 Unit 文件编写、依赖解析、资源限制和 journalctl 是运维基本功。本章从"会用 systemctl"升级到"精通 systemd 架构"。
 
 ---
 
-## 7.1 systemd概述：PID=1的帝国
+## 7.1 systemd 概述：PID=1 的帝国
 
-**一句话定义**：systemd是PID=1的初始化系统，不仅是服务管理器，更是整个用户空间的"操作系统"——管理挂载、定时器、套接字、设备、交换分区，甚至用户的登录会话。
+**一句话定义**：systemd 是 PID=1 的初始化系统，不仅是服务管理器，更是整个用户空间的"操作系统"——管理挂载、定时器、套接字、设备、交换分区，甚至用户的登录会话。
 
-### 为什么systemd取代了SysVinit？
+### 为什么 systemd 取代了 SysVinit？
 
 ```bash
 # SysVinit的问题：串行启动
@@ -7244,12 +7244,12 @@ www-data hard nofile 65535
 # D-Bus激活：服务首次被调用时才启动
 ```
 
-**systemd的核心设计哲学**：
+**systemd 的核心设计哲学**：
 - **并行启动**：通过依赖分析图，无依赖的服务同时启动
-- **按需激活**：socket/dbus/path/timer激活，减少常驻进程
-- **统一配置**：所有管理对象都是Unit文件，格式一致
-- **资源隔离**：原生集成cgroups，无需额外配置
-- **结构化日志**：journald替代分散的syslog文件
+- **按需激活**：socket/dbus/path/timer 激活，减少常驻进程
+- **统一配置**：所有管理对象都是 Unit 文件，格式一致
+- **资源隔离**：原生集成 cgroups，无需额外配置
+- **结构化日志**：journald 替代分散的 syslog 文件
 
 ### 系统启动链条深度解析
 
@@ -7283,7 +7283,7 @@ $ systemd-analyze dot | dot -Tsvg > boot-deps.svg
 # 用浏览器打开SVG，可以看到完整的依赖关系图
 ```
 
-### systemd的"帝国版图"
+### systemd 的"帝国版图"
 
 ```bash
 # systemd管理的不仅是.service，而是所有Unit类型
@@ -7304,9 +7304,9 @@ Available unit types:
 
 ---
 
-## 7.2 Unit文件编写：从入门到精通
+## 7.2 Unit 文件编写：从入门到精通
 
-### Unit文件位置（优先级从高到低）
+### Unit 文件位置（优先级从高到低）
 
 ```bash
 /etc/systemd/system/          # 管理员自定义（最高优先级）
@@ -7321,7 +7321,7 @@ Description=A high performance web server
 ...
 ```
 
-### 实战：生产级Service文件
+### 实战：生产级 Service 文件
 
 ```bash
 $ sudo cat > /etc/systemd/system/myapp.service <<'EOF'
@@ -7386,15 +7386,15 @@ $ sudo systemctl daemon-reload
 $ sudo systemctl enable --now myapp
 ```
 
-### Type详解：选择正确的服务类型
+### Type 详解：选择正确的服务类型
 
 | Type | 行为 | 适用场景 | 示例 |
 |------|------|----------|------|
-| `simple` | ExecStart启动=就绪 | 前台运行的现代服务 | 大多数Go/Rust程序 |
-| `forking` | 父进程退出=就绪 | 传统daemon（fork两次） | nginx, Apache |
+| `simple` | ExecStart 启动=就绪 | 前台运行的现代服务 | 大多数 Go/Rust 程序 |
+| `forking` | 父进程退出=就绪 | 传统 daemon（fork 两次） | nginx, Apache |
 | `oneshot` | 进程退出=完成 | 一次性任务 | 数据库迁移、备份 |
-| `notify` | sd_notify()通知=就绪 | 支持systemd通知的服务 | **现代应用最佳实践** |
-| `dbus` | D-Bus名称获取=就绪 | D-Bus服务 | 桌面服务 |
+| `notify` | sd_notify() 通知=就绪 | 支持 systemd 通知的服务 | **现代应用最佳实践** |
+| `dbus` | D-Bus 名称获取=就绪 | D-Bus 服务 | 桌面服务 |
 | `idle` | 所有作业完成后启动 | 低优先级后台任务 | 延迟启动的监控 |
 
 ```bash
@@ -7474,7 +7474,7 @@ Requires=postgresql.service
 
 ---
 
-## 7.3 systemctl实战：从基础到高级
+## 7.3 systemctl 实战：从基础到高级
 
 ### 生命周期管理
 
@@ -7642,21 +7642,21 @@ $ sudo systemctl start web-stack.target
 
 ---
 
-## 7.5 systemd定时器：cron的现代替代
+## 7.5 systemd 定时器：cron 的现代替代
 
-### 为什么用Timer替代cron？
+### 为什么用 Timer 替代 cron？
 
 | 维度 | cron | systemd timer |
 |------|------|----------------|
-| 日志 | 分散在/var/log/syslog | 统一在journald |
+| 日志 | 分散在/var/log/syslog | 统一在 journald |
 | 失败处理 | 无内置重试 | OnFailure= 可触发恢复 |
-| 环境变量 | 极度干净（几乎为空） | 继承systemd环境 |
+| 环境变量 | 极度干净（几乎为空） | 继承 systemd 环境 |
 | 依赖管理 | 无 | 可依赖其他服务 |
-| 精确时间 | 分钟级 | 秒级（.timer文件） |
+| 精确时间 | 分钟级 | 秒级（.timer 文件） |
 | 持久化 | 错过就错过 | Persistent=true 补偿执行 |
 | 随机延迟 | 无 | RandomizedDelaySec 防惊群 |
 
-### Timer实战：三种触发模式
+### Timer 实战：三种触发模式
 
 ```bash
 # 模式1：日历时间（类似cron）
@@ -7709,7 +7709,7 @@ ExecStart=/usr/local/bin/sync-nginx-config.sh
 EOF
 ```
 
-### Timer管理与监控
+### Timer 管理与监控
 
 ```bash
 # 查看所有定时器
@@ -7736,7 +7736,7 @@ $ systemctl status backup.timer
 
 ## 7.6 journalctl：结构化日志的瑞士军刀
 
-### journald存储引擎深度解析
+### journald 存储引擎深度解析
 
 ```bash
 # journald的三种存储模式
@@ -7768,7 +7768,7 @@ EOF
 $ sudo systemctl restart systemd-journald
 ```
 
-### journalctl高级查询
+### journalctl 高级查询
 
 ```bash
 # 1. 基础过滤
@@ -7850,9 +7850,9 @@ $ sudo journalctl --verify
 
 ---
 
-## 7.7 Slice与Scope：cgroups的资源层级
+## 7.7 Slice 与 Scope：cgroups 的资源层级
 
-### Slice架构详解
+### Slice 架构详解
 
 ```bash
 # 默认的三层Slice结构
@@ -7886,7 +7886,7 @@ Control group /:
 # └── machine.slice  虚拟机/容器（systemd-nspawn, Docker with systemd）
 ```
 
-### 实战：自定义Slice限制资源
+### 实战：自定义 Slice 限制资源
 
 ```bash
 # 创建数据库服务的专用Slice
@@ -7953,9 +7953,9 @@ $ sudo systemd-run --scope \
 
 ---
 
-## 7.8 Socket激活：按需启动的艺术
+## 7.8 Socket 激活：按需启动的艺术
 
-### 为什么需要Socket激活？
+### 为什么需要 Socket 激活？
 
 ```bash
 # 传统方式：所有服务开机即启动
@@ -7974,7 +7974,7 @@ $ sudo systemd-run --scope \
 # - 零停机更新（新旧服务共享socket）
 ```
 
-### Socket激活实战
+### Socket 激活实战
 
 ```bash
 # 1. 创建socket文件
@@ -8172,16 +8172,16 @@ WantedBy=multi-user.target
 思路：修改应用服务的 Unit 文件，将 After=network-online.target 改为 After=network.target（network.target 不等待网络就绪，启动更快），并去掉 Wants=network-online.target。
 # 第八章：性能监控与调优（增强版）
 
-> **本章定位**：从top到eBPF，从iostat到io_uring，本章覆盖2024-2026年Linux性能监控的完整工具链和调优方法论。
+> **本章定位**：从 top 到 eBPF，从 iostat 到 io_uring，本章覆盖 2024-2026 年 Linux 性能监控的完整工具链和调优方法论。
 
 > **🧭 延伸阅读**：io_uring 是 Linux 5.1 引入的异步 I/O 框架，**在 6.x 版本中已全面成熟**，MySQL 8.0.26+、PostgreSQL 16+、Redis 7.0+ 均已默认启用。其性能比传统 libaio 提升 30%-100%，延迟降低 20%-50%。详见**第十三章 13.1 节**。
 
 
 ---
 
-## 8.1 CPU监控：从top到eBPF
+## 8.1 CPU 监控：从 top 到 eBPF
 
-### 负载与CPU使用率：两个不同的概念
+### 负载与 CPU 使用率：两个不同的概念
 
 ```bash
 # 负载 = 正在运行 + 等待运行的进程数（包括IO等待）
@@ -8222,7 +8222,7 @@ $ btop
 # 配置：~/.config/btop/btop.conf
 ```
 
-### mpstat：多核CPU深度分析
+### mpstat：多核 CPU 深度分析
 
 ```bash
 $ mpstat -P ALL 2 5
@@ -8240,7 +8240,7 @@ Average:    1    2.00   0.00  1.00    0.00  0.00   0.00    0.00    0.00  97.00
 # %soft 高 = 软中断过多（网卡收包太多？）
 ```
 
-### perf：定位CPU热点函数
+### perf：定位 CPU 热点函数
 
 ```bash
 # 1. 实时查看热点函数
@@ -8266,7 +8266,7 @@ $ sudo perf stat -e syscalls:sys_enter_read,syscalls:sys_enter_write -p 1234 sle
 # 统计5秒内read/write系统调用次数
 ```
 
-### eBPF：2024-2026年的性能监控标配
+### eBPF：2024-2026 年的性能监控标配
 
 ```bash
 # 安装bpftrace（eBPF高级语言）
@@ -8294,7 +8294,7 @@ $ sudo tcpconnect-bpfcc             # 实时TCP连接建立
 $ sudo runqlat-bpfcc                # CPU调度队列延迟
 ```
 
-### 实战：CPU问题排查流程
+### 实战：CPU 问题排查流程
 
 ```bash
 # 场景：CPU使用率100%，需要定位原因
@@ -8376,17 +8376,17 @@ nginx executed /usr/sbin/nginx
 # 追踪每次文件打开（抓谁在频繁读写）
 $ sudo bpftrace -e 'kprobe:do_sys_open { printf("%s: %s\n", comm, str(arg1)); }'
 避坑指南
-# 坑1：debugfs 未挂载
+# 坑 1：debugfs 未挂载
 $ sudo mount -t debugfs none /sys/kernel/debug
-# 坑2：内核配置不足
+# 坑 2：内核配置不足
 $ cat /boot/config-$(uname -r) | grep -E "CONFIG_BPF|CONFIG_KPROBES"
 # 如果缺失，需重新编译内核或换发行版
-# 坑3：容器内无法运行 eBPF
+# 坑 3：容器内无法运行 eBPF
 # 需要 --privileged 或 --cap-add BPF,SYS_ADMIN
 $ docker run --privileged --rm -v /sys/kernel/debug:/sys/kernel/debug:rw ...
 
 
-## 8.2 内存监控：从free到memleak
+## 8.2 内存监控：从 free 到 memleak
 
 ### 内存指标详解
 
@@ -8411,7 +8411,7 @@ Dirty:              12345 kB     # 等待写回磁盘的
 Writeback:           1234 kB     # 正在写回的
 ```
 
-### vmstat：内存+IO+CPU一体化
+### vmstat：内存+IO+CPU 一体化
 
 ```bash
 $ vmstat 2 5
@@ -8448,7 +8448,7 @@ $ pmap -x 1234 | sort -k3 -n | tail -20
 $ sudo bpftrace -e 'uprobe:/usr/lib/x86_64-linux-gnu/libc.so.6:malloc { @allocations[comm] = count(); @bytes[comm] = sum(arg0); }'
 ```
 
-### OOM Killer分析与防护
+### OOM Killer 分析与防护
 
 ```bash
 # 1. 查看OOM日志
@@ -8466,9 +8466,9 @@ EOF
 
 ---
 
-## 8.3 磁盘IO监控：从iostat到io_uring
+## 8.3 磁盘 IO 监控：从 iostat 到 io_uring
 
-### iostat：磁盘级IO分析
+### iostat：磁盘级 IO 分析
 
 ```bash
 $ iostat -x 2 3
@@ -8477,7 +8477,7 @@ $ iostat -x 2 3
 # %util = 设备利用率（HDD有意义，SSD看await更准）
 ```
 
-### 进程级IO：iotop / pidstat
+### 进程级 IO：iotop / pidstat
 
 ```bash
 $ sudo iotop -o -b -n 1        # 只看有IO的进程
@@ -8497,7 +8497,7 @@ $ sudo fio --name=randread --ioengine=libaio --rw=randread --bs=4k --direct=1 --
 $ sudo fio --name=mix --ioengine=libaio --rw=randrw --rwmixread=70 --bs=4k --direct=1 --size=4G --numjobs=16 --runtime=60 --group_reporting --filename=/data/test
 ```
 
-### io_uring：Linux 5.1+的异步IO革命
+### io_uring：Linux 5.1+ 的异步 IO 革命
 
 ```bash
 # io_uring是新一代异步IO接口，性能比aio高2-5倍
@@ -8512,7 +8512,7 @@ $ sudo bpftrace -e 'tracepoint:io_uring:io_uring_submit_sqe { @apps[comm] = coun
 
 ---
 
-## 8.4 网络IO监控：从ss到eBPF
+## 8.4 网络 IO 监控：从 ss 到 eBPF
 
 ### ss + sar：基础网络监控
 
@@ -8535,7 +8535,7 @@ $ sudo iftop -i eth0 -P           # 按连接显示带宽
 $ sudo nethogs eth0               # 按进程显示带宽
 ```
 
-### eBPF网络监控：tcpconnect / tcplife
+### eBPF 网络监控：tcpconnect / tcplife
 
 ```bash
 $ sudo tcpconnect-bpfcc           # 实时TCP连接建立（找异常）
@@ -8546,7 +8546,7 @@ $ sudo gethostlatency-bpfcc       # DNS解析延迟
 
 ---
 
-## 8.5 内核调优：sysctl生产模板
+## 8.5 内核调优：sysctl 生产模板
 
 ```bash
 # /etc/sysctl.d/99-production.conf
@@ -8652,11 +8652,11 @@ net.ipv4.tcp_congestion_control = bbr
 思路：pmap -x <PID> | sort -k3 -rn | head -20 查看哪些内存段（heap 或匿名映射）占用最大且持续增长。如果是 heap 增长，结合 valgrind 或 heaptrack 分析；如果是 mmap 映射文件未释放，检查代码中的文件流关闭逻辑。
 # 第九章：日志管理与定时任务
 
-> **本章定位**：日志是故障排查的"黑匣子"，定时任务是自动化的"心脏"。本章从rsyslog的传统架构讲到journald的现代设计，从crontab的暗坑讲到systemd timer的精准调度，覆盖生产环境的全链路日志与定时任务管理。
+> **本章定位**：日志是故障排查的"黑匣子"，定时任务是自动化的"心脏"。本章从 rsyslog 的传统架构讲到 journald 的现代设计，从 crontab 的暗坑讲到 systemd timer 的精准调度，覆盖生产环境的全链路日志与定时任务管理。
 
 ## 9.1 日志系统架构演进
 
-**一句话定义**：Linux日志系统经历了 syslogd → rsyslog → systemd-journald 的三代演进，现代生产环境通常是 journald（结构化采集）+ rsyslog（网络转发/持久化） 的混合架构。
+**一句话定义**：Linux 日志系统经历了 syslogd → rsyslog → systemd-journald 的三代演进，现代生产环境通常是 journald（结构化采集）+ rsyslog（网络转发/持久化）的混合架构。
 
 ### 三代日志系统对比
 
@@ -8667,7 +8667,7 @@ net.ipv4.tcp_congestion_control = bbr
 | 性能 | 低（同步写） | 中（异步队列） | 高（内存映射 + 索引） |
 | 网络转发 | UDP（不可靠） | UDP/TCP/RELP | 需配合 rsyslog |
 | 存储效率 | 差（重复文本） | 差 | 优（字段去重 + 压缩） |
-| FIPS合规 | 否 | 可选 | 是（签名验证） |
+| FIPS 合规 | 否 | 可选 | 是（签名验证） |
 | 现代推荐 | ❌ 淘汰 | ⚠️ 网络转发场景 | ✅ 首选采集端 |
 
 ### 为什么生产环境需要"混合架构"？
@@ -8692,7 +8692,7 @@ rsyslog 负责"传"：网络协议成熟（TCP/RELP）、生态兼容好
 journald 是现代 Linux 日志系统的核心引擎。以下从存储机制、字段系统、查询实战、持久化配置、远程转发五个维度深入拆解。
 
 ## 9.2.1 二进制日志的存储机制
-**一句话定义**：journald 将日志存储为 二进制 Journal 文件（*.journal），采用 追加写 + 字段索引 + 自动轮转 的设计，查询速度比文本日志快 10-100倍。
+**一句话定义**：journald 将日志存储为 二进制 Journal 文件（*.journal），采用 追加写 + 字段索引 + 自动轮转 的设计，查询速度比文本日志快 10-100 倍。
 ```bash
 # 1. 查看日志存储位置
 $ ls -la /var/log/journal/
@@ -9568,7 +9568,7 @@ $ sudo logrotate -d /etc/logrotate.conf  # 无语法错误
 $ crontab -l | grep -E 'PATH|SHELL'     # 显式设置环境
 
 # timer 状态
-$ systemctl list-timers --failed        # 无失败timer
+$ systemctl list-timers --failed        # 无失败 timer
 > 本章扩充后字数：约 12,000 字
 > 涉及命令：journalctl, rsyslogd, logrotate, crontab, systemctl, logger, lsof, flock
 
@@ -9770,7 +9770,7 @@ $ dpkg-deb -e nginx_1.24.deb /tmp/nginx-control    # 提取控制脚本
 dnf 是 RHEL 8+ 的标准包管理器，最显著的变化是引入了模块流（Modular Stream）概念。
 
 ## 10.2.1 dnf 模块流（Modular Stream）
-RHEL 8+ 引入的 模块（Module） 机制，允许同一软件多版本共存：
+RHEL 8+ 引入的 模块（Module）机制，允许同一软件多版本共存：
 ```bash
 # 1. 查看可用模块
 $ dnf module list
@@ -10148,7 +10148,7 @@ dpkg -l | grep -E '^..(F|H)' | wc -l
 
 ```
 ┌─────────────────────────────────────────┐
-│  应用层（Web应用、API、数据库）           │  ← SQL注入、XSS、逻辑漏洞
+│  应用层（Web 应用、API、数据库）           │  ← SQL 注入、XSS、逻辑漏洞
 ├─────────────────────────────────────────┤
 │  服务层（SSH、HTTP、DNS、邮件）           │  ← 暴力破解、协议漏洞、配置错误
 ├─────────────────────────────────────────┤
@@ -10185,11 +10185,11 @@ $ getcap /usr/bin/ping
 $ docker run --rm --cap-drop=ALL --cap-add=NET_BIND_SERVICE nginx
 # 先丢弃所有能力，再按需添加
 ```
-## 11.2 SSH安全加固：远程访问的第一道门
+## 11.2 SSH 安全加固：远程访问的第一道门
 
 SSH 是大多数 Linux 服务器的唯一入口——加固它就是加固整个防线的最前沿。
 
-## 11.2.1 现代SSH配置模板（OpenSSH 9.x）
+## 11.2.1 现代 SSH 配置模板（OpenSSH 9.x）
 ```bash
 # /etc/ssh/sshd_config
 # 基于 Ubuntu 24.04 / RHEL 9 / OpenSSH 9.7+
@@ -10355,11 +10355,11 @@ $ google-authenticator                  # 用户自行配置，生成二维码
 # AuthenticationMethods publickey,keyboard-interactive
 # 需要同时提供密钥+手机验证码
 ```
-## 11.3 PAM与认证框架深度配置
+## 11.3 PAM 与认证框架深度配置
 
 PAM（Pluggable Authentication Modules）是 Linux 认证体系的"插线板"——SSH、sudo、login 都通过它完成用户验证。
 
-## 11.3.1 PAM配置结构解析
+## 11.3.1 PAM 配置结构解析
 ```bash
 # PAM（Pluggable Authentication Modules）是Linux认证的核心框架
 # 配置文件：/etc/pam.d/ 目录下的服务同名文件
@@ -10385,8 +10385,8 @@ required  必须成功，但失败不立即返回，继续后续模块  密码�
 requisite 必须成功，失败立即返回失败 关键安全检查
 sufficient  成功则立即返回成功，失败忽略  备用认证方式（如指纹）
 optional  成功与否不影响总体结果 非关键模块
-include 包含另一个配置文件 复用common规则
-substack  类似include，但失败不传播  子流程
+include 包含另一个配置文件 复用 common 规则
+substack  类似 include，但失败不传播  子流程
 ```bash
 # 实际例子：/etc/pam.d/sshd
 auth       required     pam_sepermit.so          # SELinux上下文检查
@@ -10465,7 +10465,7 @@ When                Type  Source                                           Valid
 # 手动解锁
 $ sudo faillock --user alice --reset
 ```
-## 11.3.5 资源限制（ulimit与PAM集成）
+## 11.3.5 资源限制（ulimit 与 PAM 集成）
 ```bash
 # /etc/security/limits.conf 通过PAM的pam_limits.so生效
 $ cat <<'EOF' | sudo tee /etc/security/limits.d/99-production.conf
@@ -10502,15 +10502,15 @@ $ ulimit -Hn                          # hard limit
 # LimitNOFILE=65536
 # LimitNPROC=4096
 ```
-## 11.4 SELinux与AppArmor：强制访问控制
+## 11.4 SELinux 与 AppArmor：强制访问控制
 
-> **🧭 延伸阅读**：除了软件层面的 MAC 机制，**Intel 11 代+ / AMD Zen 4+ CPU 提供了硬件级的控制流保护——影子栈（Shadow Stack）**。它通过 CPU 内部的"防篡改返回地址副本"从硅片层面堵死 ROP 攻击。Linux 6.6+ 已支持影子栈。详见**第十三章 13.4 节**。
+> **🧭 延伸阅读**：除了软件层面的 MAC 机制，**Intel 11 代 + / AMD Zen 4+ CPU 提供了硬件级的控制流保护——影子栈（Shadow Stack）**。它通过 CPU 内部的"防篡改返回地址副本"从硅片层面堵死 ROP 攻击。Linux 6.6+ 已支持影子栈。详见**第十三章 13.4 节**。
 
 
 传统 DAC（自由访问控制）的缺陷是：进程获得用户权限后可以为所欲为。MAC（强制访问控制）补上了这个缺口——即使 root 也要遵守策略。
 
-## 11.4.1 SELinux深度实战（RHEL/CentOS）
-**一句话定义**：SELinux是标签-based的强制访问控制（MAC），给每个进程和文件打安全标签，内核根据策略决定"谁可以对什么做什么"，即使root也要遵守。
+## 11.4.1 SELinux 深度实战（RHEL/CentOS）
+**一句话定义**：SELinux 是标签-based 的强制访问控制（MAC），给每个进程和文件打安全标签，内核根据策略决定"谁可以对什么做什么"，即使 root 也要遵守。
 ```bash
 # 1. 查看当前模式
 $ getenforce
@@ -10580,8 +10580,8 @@ httpd_can_network_connect --> off
 $ sudo setsebool -P httpd_can_network_connect on
 # -P = 永久生效
 ```
-## 11.4.2 AppArmor深度实战（Ubuntu/Debian/SUSE）
-**一句话定义**：AppArmor是路径-based的强制访问控制，通过配置文件定义"某个程序可以对哪些路径执行什么操作"，比SELinux简单但灵活性稍低。
+## 11.4.2 AppArmor 深度实战（Ubuntu/Debian/SUSE）
+**一句话定义**：AppArmor 是路径-based 的强制访问控制，通过配置文件定义"某个程序可以对哪些路径执行什么操作"，比 SELinux 简单但灵活性稍低。
 ```bash
 # 1. 查看状态
 $ sudo aa-status
@@ -10597,7 +10597,7 @@ apparmor module is loaded.
    /usr/sbin/mysqld
 # enforce = 强制，complain = 仅记录不阻止
 
-# 2. 查看nginx配置
+# 2. 查看 nginx 配置
 ```bash
 $ cat /etc/apparmor.d/usr.sbin.nginx
 #include <tunables/global>
@@ -10628,7 +10628,7 @@ $ cat /etc/apparmor.d/usr.sbin.nginx
 }
 ```
 
-# 语法：r=读, w=写, rw=读写, k=锁定, l=链接, m=内存映射, ix=继承执行
+# 语法：r=读，w=写，rw=读写，k=锁定，l=链接，m=内存映射，ix=继承执行
 
 # 3. 修改配置（添加新路径）
 $ sudo vim /etc/apparmor.d/local/usr.sbin.nginx
@@ -10638,7 +10638,7 @@ $ sudo vim /etc/apparmor.d/local/usr.sbin.nginx
 $ sudo apparmor_parser -r /etc/apparmor.d/usr.sbin.nginx
 # -r = 重新加载
 
-# 4.  complain模式调试（不阻止，只记录）
+# 4.  complain 模式调试（不阻止，只记录）
 $ sudo aa-complain /usr/sbin/nginx
 # 运行一段时间，收集日志
 $ sudo grep audit /var/log/syslog | grep apparmor
@@ -10647,17 +10647,17 @@ $ sudo aa-enforce /usr/sbin/nginx
 
 # 5. 生成新配置文件
 $ sudo aa-genprof /usr/local/bin/myapp
-# 交互式工具：运行myapp执行各种操作，aa-genprof自动学习并生成配置
+# 交互式工具：运行 myapp 执行各种操作，aa-genprof 自动学习并生成配置
 ## 11.4.3 SELinux vs AppArmor 选型
 维度  SELinux AppArmor
-策略模型  标签（Label） 路径（Path）
-复杂度 高（需理解TE、RBAC、MLS） 低（路径+权限直观）
-灵活性 极高（可定义任意关系） 中等（路径为主）
+策略模型  标签（Label）路径（Path）
+复杂度 高（需理解 TE、RBAC、MLS）低（路径 + 权限直观）
+灵活性 极高（可定义任意关系）中等（路径为主）
 默认发行版 RHEL/CentOS/Fedora  Ubuntu/Debian/SUSE
 学习曲线  陡峭  平缓
-容器支持  完善（container-selinux） 一般
+容器支持  完善（container-selinux）一般
 审计工具  audit2allow, sesearch aa-genprof, aa-logprof
-生产推荐  RHEL生态首选  Ubuntu生态首选
+生产推荐  RHEL 生态首选  Ubuntu 生态首选
 ## 11.5 auditd：内核级审计系统
 
 auditd 是 Linux 内核的"监控摄像头"——它可以记录每一次文件访问、每一条命令执行、每一次系统调用。
@@ -10802,16 +10802,16 @@ type=USER_ACCT msg=audit(1720000000.123:457): pid=5678 uid=1000 auid=1000 ses=1 
 
 **解读**：
 - syscall=59 = execve（执行程序）
-# uid=1000, euid=0 = alice执行sudo，有效UID变成root
-# mode=0104755 = setuid位（u+s）
-# res=success = PAM认证成功
+# uid=1000, euid=0 = alice 执行 sudo，有效 UID 变成 root
+# mode=0104755 = setuid 位（u+s）
+# res=success = PAM 认证成功
 
 # 8. 威胁狩猎：查找异常模式
 # 查找非工作时间（22:00-06:00）的特权操作
 $ sudo ausearch -k privilege_escalation --start 00:00 --end 06:00 | grep -c "type=SYSCALL"
 
 # 查找短时间内大量失败认证
-$ sudo aureport --failed -au --summary | awk '$2 > 10 {print}'  # 失败>10次的用户
+$ sudo aureport --failed -au --summary | awk '$2 > 10 {print}'  # 失败>10 次的用户
 
 # 查找新出现的可执行文件（可能的后门）
 $ sudo ausearch -x /usr/local/bin -ts today | grep "type=SYSCALL.*syscall=59"
@@ -10824,8 +10824,8 @@ $ sudo ausearch -x /usr/local/bin -ts today | grep "type=SYSCALL.*syscall=59"
 ```bash
 # 1. 镜像漏洞扫描（构建时）
 $ docker build -t myapp:1.0 .
-$ trivy image myapp:1.0               # Trivy扫描
-# 或使用Snyk、Clair、Grype
+$ trivy image myapp:1.0               # Trivy 扫描
+# 或使用 Snyk、Clair、Grype
 
 # 2. 最小化基础镜像（攻击面最小化）
 # ❌ 不推荐：
@@ -10833,9 +10833,9 @@ FROM ubuntu:24.04                     # 180MB+，包含大量无用工具
 RUN apt-get install -y python3        # 又增加一堆依赖
 
 # ✅ 推荐：
-FROM python:3.12-slim                 # 60MB，仅Python运行时
+FROM python:3.12-slim                 # 60MB，仅 Python 运行时
 # 或
-FROM gcr.io/distroless/python3        # 20MB，无shell，无包管理器
+FROM gcr.io/distroless/python3        # 20MB，无 shell，无包管理器
 # 或
 FROM scratch                          # 空镜像，仅复制静态二进制
 
@@ -10849,13 +10849,13 @@ FROM scratch                          # 空基础
 COPY --from=builder /app/server .
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 EXPOSE 8080
-USER 65534                            # nobody用户
+USER 65534                            # nobody 用户
 ENTRYPOINT ["/server"]
 
 # 4. 镜像签名与验证（防篡改）
 $ docker trust sign myregistry/myapp:1.0
 $ docker trust inspect --pretty myregistry/myapp:1.0
-# 启用Docker Content Trust：
+# 启用 Docker Content Trust：
 $ export DOCKER_CONTENT_TRUST=1
 $ docker pull myregistry/myapp:1.0   # 如果未签名，拉取失败
 
@@ -10874,7 +10874,7 @@ $ cat /etc/docker/daemon.json
 ```
 ## 11.6.2 运行时安全：Capabilities与Seccomp
 ```bash
-# 1. 默认Docker Capabilities（12个）
+# 1. 默认 Docker Capabilities（12 个）
 $ docker run --rm alpine cat /proc/self/status | grep Cap
 CapEff: 00000000a80425fb              # 有效能力
 # 解码：
@@ -10890,16 +10890,16 @@ $ docker run --rm \
   nginx:alpine
 # 容器内：
 $ cat /proc/self/status | grep Cap
-CapEff: 0000000000000200              # 只有NET_BIND_SERVICE
-# 即使容器被攻破，攻击者也无法mount、修改系统时间等
+CapEff: 0000000000000200              # 只有 NET_BIND_SERVICE
+# 即使容器被攻破，攻击者也无法 mount、修改系统时间等
 
 # 3. Seccomp：系统调用过滤
-# Docker默认启用seccomp，过滤约44个危险系统调用
+# Docker 默认启用 seccomp，过滤约 44 个危险系统调用
 $ docker info | grep seccomp
  Security Options: seccomp
   Profile: default
 
-# 自定义seccomp profile（进一步限制）
+# 自定义 seccomp profile（进一步限制）
 $ cat > /etc/docker/seccomp-custom.json <<'EOF'
 {
   "defaultAction": "SCMP_ACT_ERRNO",
@@ -10923,9 +10923,9 @@ EOF
 $ docker run --rm --security-opt seccomp=/etc/docker/seccomp-custom.json myapp
 
 # 4. AppArmor/SELinux在容器中的应用
-# Docker默认使用container-selinux（RHEL）或默认AppArmor profile（Ubuntu）
+# Docker 默认使用 container-selinux（RHEL）或默认 AppArmor profile（Ubuntu）
 $ docker run --rm --security-opt apparmor=docker-default alpine
-# 查看默认profile：
+# 查看默认 profile：
 $ cat /etc/apparmor.d/docker
 # 自定义：
 $ docker run --rm --security-opt apparmor=myapp-profile myapp
@@ -10934,18 +10934,18 @@ $ docker run --rm --security-opt apparmor=myapp-profile myapp
 ```bash
 # 1. 运行时行为基线
 $ docker run -d --name web --security-opt seccomp=unconfined nginx
-$ docker exec web ps aux              # 基线：应该只有nginx进程
-$ docker exec web ls /proc            # 基线：标准procfs
-# 异常：发现unexpected进程或/proc被篡改 → 可能容器逃逸
+$ docker exec web ps aux              # 基线：应该只有 nginx 进程
+$ docker exec web ls /proc            # 基线：标准 procfs
+# 异常：发现 unexpected 进程或/proc 被篡改 → 可能容器逃逸
 
-# 2. 资源限制（防DoS）
+# 2. 资源限制（防 DoS）
 $ docker run -d \
   --memory="512m" \
-  --memory-swap="512m" \              # 禁用swap（防swap耗尽）
+  --memory-swap="512m" \              # 禁用 swap（防 swap 耗尽）
   --cpus="1.5" \
-  --pids-limit=100 \                  # 限制进程数（防fork炸弹）
+  --pids-limit=100 \                  # 限制进程数（防 fork 炸弹）
   --read-only \                       # 根文件系统只读
-  --tmpfs /tmp:noexec,nosuid,size=100m \  # tmpfs限制
+  --tmpfs /tmp:noexec,nosuid,size=100m \  # tmpfs 限制
   --tmpfs /var/cache:size=10m \
   nginx
 
@@ -10956,12 +10956,12 @@ $ docker run -d \
   -v nginx-logs:/var/log/nginx:rw \
   -v nginx-conf:/etc/nginx:ro \
   nginx
-# 即使容器被攻破，攻击者也无法修改/usr/sbin/nginx等系统文件
+# 即使容器被攻破，攻击者也无法修改/usr/sbin/nginx 等系统文件
 
 # 4. 无特权模式（防容器逃逸）
 $ docker run -d --security-opt no-new-privileges:true myapp
-# 禁止容器内进程通过setuid/setcap提升权限
-# 即使容器内有setuid二进制，也无法提权
+# 禁止容器内进程通过 setuid/setcap 提升权限
+# 即使容器内有 setuid 二进制，也无法提权
 ```
 ## 11.7 漏洞管理与供应链安全
 
@@ -10972,7 +10972,7 @@ $ docker run -d --security-opt no-new-privileges:true myapp
 # 1. 系统级漏洞扫描
 $ sudo apt install lynis              # 自动化安全审计
 $ sudo lynis audit system
-# 或使用OpenSCAP：
+# 或使用 OpenSCAP：
 $ sudo apt install libopenscap8
 $ sudo oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_cis_level2_server --results-arf /tmp/scan.xml /usr/share/xml/scap/ssg/content/ssg-ubuntu2404-ds.xml
 
@@ -10980,12 +10980,12 @@ $ sudo oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_cis_level
 $ dpkg -l | grep -E 'openssh|openssl|nginx|apache|mysql|postgresql'
 $ rpm -qa | grep -E 'openssh|openssl|nginx|httpd|mariadb|postgresql'
 
-# 3. 快速CVE检查脚本
+# 3. 快速 CVE 检查脚本
 $ cat > /usr/local/bin/cve-check.sh <<'EOF'
 #!/bin/bash
 set -euo pipefail
 
-echo "=== 关键软件版本与CVE检查 $(date) ==="
+echo "=== 关键软件版本与 CVE 检查 $(date) ==="
 echo ""
 
 check_pkg() {
@@ -11008,28 +11008,28 @@ check_pkg openssl
 openssl version
 
 echo ""
-echo "3. Web服务器:"
+echo "3. Web 服务器："
 check_pkg nginx
 check_pkg apache2
 check_pkg httpd
 
 echo ""
-echo "4. 数据库:"
+echo "4. 数据库："
 check_pkg mysql-server
 check_pkg mariadb-server
 check_pkg postgresql
 
 echo ""
-echo "5. 容器运行时:"
+echo "5. 容器运行时："
 check_pkg docker-ce
 check_pkg containerd
 docker --version 2>/dev/null || true
 
 echo ""
 echo "建议：访问以下地址交叉验证已知漏洞："
-echo "  - https://nvd.nist.gov (NVD数据库)"
-echo "  - https://security-tracker.debian.org (Debian安全追踪)"
-echo "  - https://access.redhat.com/security/cve (Red Hat CVE数据库)"
+echo "  - https://nvd.nist.gov (NVD 数据库)"
+echo "  - https://security-tracker.debian.org (Debian 安全追踪)"
+echo "  - https://access.redhat.com/security/cve (Red Hat CVE 数据库)"
 EOF
 chmod +x /usr/local/bin/cve-check.sh
 ```
@@ -11043,21 +11043,21 @@ $ sudo dpkg-reconfigure unattended-upgrades  # 启用
 $ cat <<'EOF' | sudo tee /etc/apt/apt.conf.d/50unattended-upgrades
 Unattended-Upgrade::Allowed-Origins {
     "${distro_id}:${distro_codename}-security";                    # 安全更新
-    "${distro_id}ESMApps:${distro_codename}-apps-security";        # ESM应用
-    "${distro_id}ESM:${distro_codename}-infra-security";           # ESM基础设施
+    "${distro_id}ESMApps:${distro_codename}-apps-security";        # ESM 应用
+    "${distro_id}ESM:${distro_codename}-infra-security";           # ESM 基础设施
 };
 Unattended-Upgrade::Package-Blacklist {
     // "nginx";                                                    # 如需排除特定包
     // "postgresql-*";
 };
-Unattended-Upgrade::AutoFixInterruptedDpkg "true";                 # 修复中断的dpkg
+Unattended-Upgrade::AutoFixInterruptedDpkg "true";                 # 修复中断的 dpkg
 Unattended-Upgrade::MinimalSteps "true";                           # 最小化步骤（降低风险）
 Unattended-Upgrade::InstallOnShutdown "false";                     # 不在关机时安装
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
 Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
 Unattended-Upgrade::Automatic-Reboot "false";                      # 生产环境手动重启
 Unattended-Upgrade::Automatic-Reboot-Time "03:00";
-Unattended-Upgrade::SyslogEnable "true";                           # 记录到syslog
+Unattended-Upgrade::SyslogEnable "true";                           # 记录到 syslog
 Unattended-Upgrade::Verbose "0";
 EOF
 
@@ -11131,17 +11131,17 @@ exec > >(tee -a "$REPORT_FILE") 2>&1
 
 echo "=========================================="
 echo "  安全审计报告 $(date)"
-echo "  主机: $(hostname)"
-echo "  内核: $(uname -r)"
+echo "  主机：$(hostname)"
+echo "  内核：$(uname -r)"
 echo "=========================================="
 
 echo ""
 echo "【1】可登录用户审计"
 echo "----------------------------------------"
-echo "可登录用户（有shell）："
+echo "可登录用户（有 shell）："
 awk -F: '$7 !~ /nologin|false/ && $3>=1000 {print "  " $1 ": " $7}' /etc/passwd
 echo ""
-echo "系统用户（UID<1000但有shell，异常！）："
+echo "系统用户（UID<1000 但有 shell，异常！）："
 awk -F: '$7 !~ /nologin|false/ && $3<1000 && $3!=0 {print "  ⚠ " $1 ": " $7}' /etc/passwd
 
 echo ""
@@ -11151,29 +11151,29 @@ echo "空密码或锁定用户："
 awk -F: '($2=="" || $2=="!" || $2=="*") && $3>=1000 {print "  ⚠ " $1 ": " ($2=="" ? "空密码" : "锁定/无密码")}' /etc/shadow
 echo ""
 echo "密码永不过期（风险）："
-chage -l root 2>/dev/null | grep -i "never" && echo "  ⚠ root密码永不过期"
+chage -l root 2>/dev/null | grep -i "never" && echo "  ⚠ root 密码永不过期"
 for user in $(awk -F: '$3>=1000{print $1}' /etc/passwd); do
     chage -l "$user" 2>/dev/null | grep -q "password must be changed" && echo "  ⚠ $user 密码过期策略异常"
 done
 
 echo ""
-echo "【3】sudo权限审计"
+echo "【3】sudo 权限审计"
 echo "----------------------------------------"
-echo "免密sudo用户（高风险）："
+echo "免密 sudo 用户（高风险）："
 grep -r "NOPASSWD" /etc/sudoers /etc/sudoers.d/ 2>/dev/null | grep -v "^#" | while read line; do
     echo "  ⚠ $line"
 done
 echo ""
-echo "sudo ALL权限用户："
+echo "sudo ALL 权限用户："
 grep -r "ALL=.*ALL" /etc/sudoers /etc/sudoers.d/ 2>/dev/null | grep -v "^#" | while read line; do
     echo "  ⚠ $line"
 done
 
 echo ""
-echo "【4】SSH配置审计"
+echo "【4】SSH 配置审计"
 echo "----------------------------------------"
 if [ -f /etc/ssh/sshd_config ]; then
-    echo "PermitRootLogin: $(grep -E "^PermitRootLogin" /etc/ssh/sshd_config | awk '{print $2}' || echo "未设置（默认yes，风险）")"
+    echo "PermitRootLogin: $(grep -E "^PermitRootLogin" /etc/ssh/sshd_config | awk '{print $2}' || echo "未设置（默认 yes，风险）")"
     echo "PasswordAuthentication: $(grep -E "^PasswordAuthentication" /etc/ssh/sshd_config | awk '{print $2}' || echo "未设置")"
     echo "Port: $(grep -E "^Port" /etc/ssh/sshd_config | awk '{print $2}' || echo "22")"
     
@@ -11186,16 +11186,16 @@ else
 fi
 
 echo ""
-echo "【5】SUID/SGID审计"
+echo "【5】SUID/SGID 审计"
 echo "----------------------------------------"
-echo "SUID文件（非标准）："
+echo "SUID 文件（非标准）："
 find / -perm -4000 -type f 2>/dev/null | grep -v -E '^/(usr/sbin|usr/bin|bin|sbin)/' | while read f; do
-    echo "  ⚠ 非标准路径SUID: $f"
+    echo "  ⚠ 非标准路径 SUID: $f"
 done
 echo ""
-echo "SGID文件（非标准）："
+echo "SGID 文件（非标准）："
 find / -perm -2000 -type f 2>/dev/null | grep -v -E '^/(usr/sbin|usr/bin|bin|sbin)/' | while read f; do
-    echo "  ⚠ 非标准路径SGID: $f"
+    echo "  ⚠ 非标准路径 SGID: $f"
 done
 
 echo ""
@@ -11221,18 +11221,18 @@ if command -v lastb >/dev/null 2>&1; then
         echo "  $line"
     done
 else
-    echo "  lastb不可用，检查/var/log/auth.log或/var/log/secure"
+    echo "  lastb 不可用，检查/var/log/auth.log 或/var/log/secure"
 fi
 
 echo ""
 echo "【9】定时任务审计"
 echo "----------------------------------------"
-echo "系统cron任务："
+echo "系统 cron 任务："
 find /etc/cron* -type f 2>/dev/null | while read f; do
     echo "  $f"
 done
 echo ""
-echo "用户cron任务："
+echo "用户 cron 任务："
 for f in /var/spool/cron/*; do
     [ -f "$f" ] && echo "  $f"
 done
@@ -11240,15 +11240,15 @@ done
 echo ""
 echo "【10】内核参数安全审计"
 echo "----------------------------------------"
-echo "内核指针限制: $(sysctl -n kernel.kptr_restrict 2>/dev/null || echo "未设置") (推荐2)"
-echo "dmesg限制: $(sysctl -n kernel.dmesg_restrict 2>/dev/null || echo "未设置") (推荐1)"
-echo "ptrace范围: $(sysctl -n kernel.yama.ptrace_scope 2>/dev/null || echo "未设置") (推荐1或2)"
-echo "kexec限制: $(sysctl -n kernel.kexec_load_disabled 2>/dev/null || echo "未设置") (推荐1)"
+echo "内核指针限制：$(sysctl -n kernel.kptr_restrict 2>/dev/null || echo "未设置") (推荐 2)"
+echo "dmesg 限制：$(sysctl -n kernel.dmesg_restrict 2>/dev/null || echo "未设置") (推荐 1)"
+echo "ptrace 范围：$(sysctl -n kernel.yama.ptrace_scope 2>/dev/null || echo "未设置") (推荐 1 或 2)"
+echo "kexec 限制：$(sysctl -n kernel.kexec_load_disabled 2>/dev/null || echo "未设置") (推荐 1)"
 
 echo ""
 echo "=========================================="
 echo "  审计完成。发现 ⚠ 标记的问题需立即调查。"
-echo "  完整报告: $REPORT_FILE"
+echo "  完整报告：$REPORT_FILE"
 echo "=========================================="
 本章小结
 安全纵深防御决策树
@@ -11347,7 +11347,7 @@ $ cat /var/log/auth.log 2>/dev/null | grep -i "failed\|invalid" | tail -20  # �
 ---
 # 第十二章：容器化与云原生基础
 
-> **本章定位**：Docker/Podman容器技术是现代Linux运维的核心，理解namespace+cgroups=容器。
+> **本章定位**：Docker/Podman 容器技术是现代 Linux 运维的核心，理解 namespace+cgroups=容器。
 
 ---
 
@@ -11374,7 +11374,7 @@ $ ps aux                              # 只有自己（PID 1）
 
 ---
 
-## 12.2 Docker核心命令
+## 12.2 Docker 核心命令
 
 ```bash
 # 1. 镜像
@@ -11405,7 +11405,7 @@ $ docker run -v app-data:/data myapp
 $ docker run -v $(pwd)/config:/config:ro myapp  # 只读
 ```
 
-### Dockerfile模板
+### Dockerfile 模板
 
 ```dockerfile
 FROM python:3.12-slim
@@ -11489,11 +11489,11 @@ $ docker-compose down
 
 ---
 
-## 12.5 存储驱动：overlay2详解
+## 12.5 存储驱动：overlay2 详解
 
-**一句话定义**：overlay2是Docker默认的联合文件系统驱动，通过分层挂载实现镜像复用和容器快速启动。
+**一句话定义**：overlay2 是 Docker 默认的联合文件系统驱动，通过分层挂载实现镜像复用和容器快速启动。
 
-### overlay2工作原理
+### overlay2 工作原理
 
 ```
 容器层（可写）:  /var/lib/docker/overlay2/abc.../merged/
@@ -11585,7 +11585,7 @@ abc123         2 weeks ago     0B        CMD ["nginx" "-g"]
 def456         2 weeks ago     1.5MB     EXPOSE 80
 ```
 
-## 12.7 网络模型（CNI基础）
+## 12.7 网络模型（CNI 基础）
 
 ```bash
 # Docker网络模式
@@ -11619,7 +11619,7 @@ $ docker exec web cat /etc/resolv.conf
 nameserver 127.0.0.11           # Docker内置DNS
 ```
 
-### Podman与CNI
+### Podman 与 CNI
 
 ```bash
 # Podman默认不创建网络，需手动配置
@@ -11675,7 +11675,7 @@ docker inspect $CONTAINER | jq '.[0].HostConfig.NetworkMode'
 | docker exec -it ... sh | 进入容器 |
 | docker logs -f ... | 查看日志 |
 | docker-compose up -d | 启动服务栈 |
-| podman run ... | 免root容器 |
+| podman run ... | 免 root 容器 |
 
 ---
 
@@ -12619,7 +12619,7 @@ SCHED_FEAT(GENTLE_FAIR_SLEEPERS, 1)
 SCHED_FEAT(EEVDF, 1)                  # ← EEVDF 已启用
 ```
 
-**惰性抢占模型 PREEMPT_LAZY (6.13)**：填补 `PREEMPT_VOLUNTARY`（自愿抢占）和 `PREEMPT_FULL`（完全抢占）之间的空白。`PREEMPT_LAZY` 允许进程在时间片内持续运行（减少上下文切换开销），但在 tick 边界接受抢占——吞吐量接近 voluntary，延迟接近 full。**适合 Redis/NGINX 等高吞吐+低延迟折中场景**。
+**惰性抢占模型 PREEMPT_LAZY (6.13)**：填补 `PREEMPT_VOLUNTARY`（自愿抢占）和 `PREEMPT_FULL`（完全抢占）之间的空白。`PREEMPT_LAZY` 允许进程在时间片内持续运行（减少上下文切换开销），但在 tick 边界接受抢占——吞吐量接近 voluntary，延迟接近 full。**适合 Redis/NGINX 等高吞吐 + 低延迟折中场景**。
 
 ```bash
 # 查看当前抢占模型
@@ -12736,7 +12736,7 @@ net.ipv4.tcp_congestion_control = bbr
 
 4. 安全题：影子栈（Shadow Stack）防御的是哪一类攻击？需要什么硬件支持？
 
-思路：防御 ROP（返回导向编程） 攻击，通过硬件比对普通栈和影子栈的返回地址。需要 Intel CET（11代酷睿+）或 AMD Zen 4+。
+思路：防御 ROP（返回导向编程）攻击，通过硬件比对普通栈和影子栈的返回地址。需要 Intel CET（11 代酷睿+）或 AMD Zen 4+。
 
 5. 实操题：在 RHEL 9 系统上安装实时内核 PREEMPT_RT 的包名是什么？安装后如何确认当前运行的是实时内核？
 
@@ -12756,15 +12756,15 @@ net.ipv4.tcp_congestion_control = bbr
 
 ---
 
-# 附录A：Shell脚本实战：自动化你的日常工作
+# 附录 A：Shell 脚本实战：自动化你的日常工作
 
-> **本章定位**：Shell脚本是Linux管理员的"母语"。本章不讲语法字典，而是从中级管理员最常踩的坑出发，串讲变量、条件、循环、正则，最后用五个生产级脚本收尾。附录A 建议在学完第4章（进程管理）后阅读。
+> **本章定位**：Shell 脚本是 Linux 管理员的"母语"。本章不讲语法字典，而是从中级管理员最常踩的坑出发，串讲变量、条件、循环、正则，最后用五个生产级脚本收尾。附录 A 建议在学完第 4 章（进程管理）后阅读。
 
 ---
 
 ## S.1 脚本安全底线：set -euo pipefail
 
-**一句话定义**：`set -euo pipefail`是脚本的第一道防线，分别拦截"命令失败→继续执行""未定义变量当空用""管道中间失败→只看最后成功"三类经典bug。
+**一句话定义**：`set -euo pipefail`是脚本的第一道防线，分别拦截"命令失败→继续执行""未定义变量当空用""管道中间失败→只看最后成功"三类经典 bug。
 
 ```bash
 #!/bin/bash
@@ -12778,7 +12778,7 @@ set -euo pipefail
 # rm -rf *        ← 这会在当前目录执行！！因为cd失败后脚本继续了
 ```
 
-### 三个flag的实战对比
+### 三个 flag 的实战对比
 
 ```bash
 # 1. set -e 的坑：grep 没匹配返回 1
@@ -12967,7 +12967,7 @@ $ awk '{print NR ": " $0}'               # NR=行号, $0=整行
 
 ## S.6 实战：五个生产级脚本
 
-### 脚本1：磁盘空间告警
+### 脚本 1：磁盘空间告警
 
 ```bash
 #!/bin/bash
@@ -12982,7 +12982,7 @@ df -h | awk 'NR>1' | while read -r fs size used avail pct mnt; do
 done
 ```
 
-### 脚本2：批量创建用户
+### 脚本 2：批量创建用户
 
 ```bash
 #!/bin/bash
@@ -13000,7 +13000,7 @@ while IFS=',' read -r name comment shell; do
 done < "$INPUT"
 ```
 
-### 脚本3：服务健康检查
+### 脚本 3：服务健康检查
 
 ```bash
 #!/bin/bash
@@ -13017,7 +13017,7 @@ for svc in "${SERVICES[@]}"; do
 done
 ```
 
-### 脚本4：日志清理
+### 脚本 4：日志清理
 
 ```bash
 #!/bin/bash
@@ -13030,7 +13030,7 @@ find "$LOG_DIR" -name "*.log.gz" -type f -mtime +"$((DAYS * 2))" -delete
 echo "Cleaned logs older than $DAYS days in $LOG_DIR"
 ```
 
-### 脚本5：备份+保留
+### 脚本 5：备份 + 保留
 
 ```bash
 #!/bin/bash
@@ -13130,7 +13130,7 @@ $ journalctl -t my-backup -o json | jq '.MESSAGE'
 
 ## 本章小结
 
-### Shell脚本检查清单
+### Shell 脚本检查清单
 
 ```
 □ #!/bin/bash
@@ -13913,7 +13913,7 @@ $ sudo memtest86+                        # 从 GRUB 启动
 
 ---
 
-> **涉及命令**：df -i, strace, perf, journalctl -b -1, tcpdump, ss, docker inspect, getenforce, 覆盖 12 类常见故障场景。# 附录C：常用 Linux 命令速查表
+> **涉及命令**：df -i, strace, perf, journalctl -b -1, tcpdump, ss, docker inspect, getenforce, 覆盖 12 类常见故障场景。# 附录 C：常用 Linux 命令速查表
 
 > 按功能分类的一页纸命令索引，适合案头速查。
 
@@ -13925,9 +13925,9 @@ $ sudo memtest86+                        # 从 GRUB 启动
 |------|------|
 | `uname -a` | 内核版本 |
 | `hostnamectl` | 主机信息 |
-| `uptime` | 运行时间+负载 |
+| `uptime` | 运行时间 + 负载 |
 | `lscpu / lsblk / lsusb` | CPU/块设备/USB设备 |
-| `cat /proc/cpuinfo` | CPU详细信息 |
+| `cat /proc/cpuinfo` | CPU 详细信息 |
 | `cat /proc/meminfo` | 内存详细信息 |
 | `df -h / df -i` | 磁盘空间/inode |
 | `du -sh <dir>` | 目录占用 |
@@ -13938,7 +13938,7 @@ $ sudo memtest86+                        # 从 GRUB 启动
 |------|------|
 | `ls -lah` | 列出（含隐藏、人类可读） |
 | `cp -a` / `mv` / `rm -i` | 复制/移动/删除（确认） |
-| `find . -name "*.log" -mtime +7 -delete` | 删7天前的日志 |
+| `find . -name "*.log" -mtime +7 -delete` | 删 7 天前的日志 |
 | `grep -r "pattern" /path/` | 递归搜索 |
 | `ln -s target link` | 创建软链接 |
 | `stat file` | 文件元信息 |
@@ -13950,8 +13950,8 @@ $ sudo memtest86+                        # 从 GRUB 启动
 |------|------|
 | `chmod 755 script.sh` | 设权限 |
 | `chown user:group file` | 改属主 |
-| `sudo -i` | 切换到root |
-| `getfacl / setfacl` | ACL查看/设置 |
+| `sudo -i` | 切换到 root |
+| `getfacl / setfacl` | ACL 查看/设置 |
 | `chattr +i /etc/passwd` | 防篡改 |
 | `lsattr file` | 看属性 |
 
@@ -13959,11 +13959,11 @@ $ sudo memtest86+                        # 从 GRUB 启动
 
 | 命令 | 用途 |
 |------|------|
-| `ps aux --sort=-%cpu \| head` | CPU占用Top进程 |
+| `ps aux --sort=-%cpu \| head` | CPU 占用 Top 进程 |
 | `top / htop / btop` | 实时监控 |
 | `kill -15 PID` | 优雅终止 |
 | `kill -9 PID` | 强制终止 |
-| `nohup cmd &` / `disown` | 后台+免疫SIGHUP |
+| `nohup cmd &` / `disown` | 后台 + 免疫 SIGHUP |
 | `strace -p PID` | 追踪系统调用 |
 | `lsof -p PID` | 进程打开的文件 |
 
@@ -13971,10 +13971,10 @@ $ sudo memtest86+                        # 从 GRUB 启动
 
 | 命令 | 用途 |
 |------|------|
-| `ip a` | IP地址 |
+| `ip a` | IP 地址 |
 | `ip route` | 路由表 |
 | `ss -tlnp` | 监听端口 |
-| `curl -v https://url` | HTTP调试 |
+| `curl -v https://url` | HTTP 调试 |
 | `ping -c 4 host` | 连通性 |
 | `traceroute host` / `mtr host` | 路由追踪 |
 | `sudo tcpdump -i eth0 port 80` | 抓包 |
@@ -13985,7 +13985,7 @@ $ sudo memtest86+                        # 从 GRUB 启动
 |------|------|
 | `systemctl status nginx` | 服务状态 |
 | `systemctl restart nginx` | 重启 |
-| `systemctl enable --now nginx` | 开机自启+立即启动 |
+| `systemctl enable --now nginx` | 开机自启 + 立即启动 |
 | `journalctl -u nginx -f` | 实时日志 |
 | `systemctl list-timers` | 定时器列表 |
 
@@ -13995,10 +13995,10 @@ $ sudo memtest86+                        # 从 GRUB 启动
 |------|------|
 | `free -h` | 内存 |
 | `vmstat 2 5` | 综合状态 |
-| `iostat -x 2 3` | 磁盘IO |
+| `iostat -x 2 3` | 磁盘 IO |
 | `sar -n DEV 1` | 网络流量 |
-| `perf top` | CPU热点 |
-| `sudo bpftrace -e '...'` | eBPF追踪 |
+| `perf top` | CPU 热点 |
+| `sudo bpftrace -e '...'` | eBPF 追踪 |
 | `sysctl -a \| grep <key>` | 内核参数 |
 
 ## 包管理
@@ -14016,9 +14016,9 @@ $ sudo memtest86+                        # 从 GRUB 启动
 | 命令 | 用途 |
 |------|------|
 | `sudo ausearch -k key -ts today` | 审计日志查询 |
-| `getenforce / sestatus` | SELinux状态 |
-| `aa-status` | AppArmor状态 |
-| `find / -perm -4000 2>/dev/null` | SUID文件扫描 |
+| `getenforce / sestatus` | SELinux 状态 |
+| `aa-status` | AppArmor 状态 |
+| `find / -perm -4000 2>/dev/null` | SUID 文件扫描 |
 | `fail2ban-client status sshd` | 防暴力破解 |
 
 ## 容器（Docker/Podman）
@@ -14036,175 +14036,175 @@ $ sudo memtest86+                        # 从 GRUB 启动
 | 场景 | 命令 |
 |------|------|
 | 单用户模式 | GRUB 加 `single` 或 `init=/bin/bash` |
-| 重置root密码 | `passwd`（单用户模式中） |
-| 修复fstab | 单用户模式中 `mount -o remount,rw /` |
-| 磁盘修复 | `fsck -y /dev/sda1`（先umount） |
-| XFS修复 | `xfs_repair /dev/vg0/data` |
+| 重置 root 密码 | `passwd`（单用户模式中） |
+| 修复 fstab | 单用户模式中 `mount -o remount,rw /` |
+| 磁盘修复 | `fsck -y /dev/sda1`（先 umount） |
+| XFS 修复 | `xfs_repair /dev/vg0/data` |
 
 ---
 
 > **涉及命令**：约 80 个常用命令，覆盖系统管理全场景。
-# 附录D：全书概念索引（133个核心概念）
+# 附录 D：全书概念索引（133 个核心概念）
 
-## 一、系统基础与架构（新增至18个）
+## 一、系统基础与架构（新增至 18 个）
 
-**1. 内核（Kernel）**&#x5185;核是操作系统的核心，直接附着在硬件平台之上，控制和管理系统内各种资源（CPU、内存、设备），并向上层提供系统调用接口。它负责进程管理、内存管理、文件系统管理、设备驱动和安全控制等核心功能。Linux内核采用单块架构，但支持模块化加载，允许在运行时动态链接或解除链接功能模块，实现了高效与灵活的统一。
+**1. 内核（Kernel）**&#x5185;核是操作系统的核心，直接附着在硬件平台之上，控制和管理系统内各种资源（CPU、内存、设备），并向上层提供系统调用接口。它负责进程管理、内存管理、文件系统管理、设备驱动和安全控制等核心功能。Linux 内核采用单块架构，但支持模块化加载，允许在运行时动态链接或解除链接功能模块，实现了高效与灵活的统一。
 
-**2. 发行版（Distribution）**&#x53D1;行版是基于Linux内核的完整操作系统套装，包含内核、系统工具、应用软件和包管理器。常见的发行版有Ubuntu（面向桌面用户）、CentOS（面向服务器）、Arch（面向高级用户）等。发行版通过整合GNU工具集、桌面环境（如GNOME、KDE）和软件仓库，降低了用户使用Linux的门槛，同时提供了差异化的生态体验。
+**2. 发行版（Distribution）**&#x53D1;行版是基于 Linux 内核的完整操作系统套装，包含内核、系统工具、应用软件和包管理器。常见的发行版有 Ubuntu（面向桌面用户）、CentOS（面向服务器）、Arch（面向高级用户）等。发行版通过整合 GNU 工具集、桌面环境（如 GNOME、KDE）和软件仓库，降低了用户使用 Linux 的门槛，同时提供了差异化的生态体验。
 
-**3. Shell**Shell是用户与内核交互的命令解释器，位于操作系统的最外层，接收用户输入的命令并将其传递给内核执行。常见的Shell有Bash（Bourne Again Shell）、Zsh、Fish等。Shell不仅是一个命令行界面，还是一种编程语言，支持变量、循环、条件判断等结构，用户可以通过编写Shell脚本自动化完成复杂任务。
+**3. Shell**Shell 是用户与内核交互的命令解释器，位于操作系统的最外层，接收用户输入的命令并将其传递给内核执行。常见的 Shell 有 Bash（Bourne Again Shell）、Zsh、Fish 等。Shell 不仅是一个命令行界面，还是一种编程语言，支持变量、循环、条件判断等结构，用户可以通过编写 Shell 脚本自动化完成复杂任务。
 
-**4. 终端（Terminal）**&#x7EC8;端是运行Shell的窗口程序，提供了文本输入输出的图形化界面。常见的终端模拟器有GNOME Terminal、Konsole、Terminator等。终端本身不执行命令，而是启动一个Shell进程，将用户的键盘输入传递给Shell，并将Shell的输出显示在屏幕上。终端还支持多标签、分屏、配色方案等增强功能。
+**4. 终端（Terminal）**&#x7EC8;端是运行 Shell 的窗口程序，提供了文本输入输出的图形化界面。常见的终端模拟器有 GNOME Terminal、Konsole、Terminator 等。终端本身不执行命令，而是启动一个 Shell 进程，将用户的键盘输入传递给 Shell，并将 Shell 的输出显示在屏幕上。终端还支持多标签、分屏、配色方案等增强功能。
 
-**5. 控制台（Console）**&#x63A7;制台是系统启动时直接显示的文本界面，通常通过Ctrl+Alt+F1\~F6切换。控制台不依赖图形环境，在系统故障或图形界面无法启动时，仍可通过控制台进行系统维护。每个控制台对应一个独立的虚拟终端，支持多用户同时登录，是Linux系统可靠性的重要保障。
+**5. 控制台（Console）**&#x63A7;制台是系统启动时直接显示的文本界面，通常通过 Ctrl+Alt+F1\~F6 切换。控制台不依赖图形环境，在系统故障或图形界面无法启动时，仍可通过控制台进行系统维护。每个控制台对应一个独立的虚拟终端，支持多用户同时登录，是 Linux 系统可靠性的重要保障。
 
-**6. 根用户（Root）**&#x6839;用户是Linux系统中的超级管理员，拥有对系统的完全控制权，其用户标识符（UID）固定为0。根用户可以访问任何文件、执行任何命令、修改系统配置。由于权限过大，日常操作应避免直接使用root账户，而是通过sudo命令临时提权，这样既能完成管理任务，又能记录操作日志，提高安全性。
+**6. 根用户（Root）**&#x6839;用户是 Linux 系统中的超级管理员，拥有对系统的完全控制权，其用户标识符（UID）固定为 0。根用户可以访问任何文件、执行任何命令、修改系统配置。由于权限过大，日常操作应避免直接使用 root 账户，而是通过 sudo 命令临时提权，这样既能完成管理任务，又能记录操作日志，提高安全性。
 
-**7. sudo**sudo（superuser do）允许普通用户以root或其他用户的身份执行命令，同时将操作记录到日志中。通过配置/etc/sudoers文件，管理员可以精细控制哪些用户、在哪些主机上、可以执行哪些命令。sudo相比直接使用root账户更安全，因为它要求用户输入自己的密码（而非root密码），且可以限制命令范围，防止误操作。
+**7. sudo**sudo（superuser do）允许普通用户以 root 或其他用户的身份执行命令，同时将操作记录到日志中。通过配置/etc/sudoers 文件，管理员可以精细控制哪些用户、在哪些主机上、可以执行哪些命令。sudo 相比直接使用 root 账户更安全，因为它要求用户输入自己的密码（而非 root 密码），且可以限制命令范围，防止误操作。
 
-**8. 系统调用（System Call）**&#x7CFB;统调用是用户程序请求内核服务的接口，是用户态进入内核态的唯一合法途径。常见的系统调用有open()、read()、write()、fork()、exec()等。当应用程序需要访问硬件设备、创建进程、分配内存时，必须通过系统调用陷入内核，由内核代表应用程序完成操作。系统调用是操作系统提供的最小功能单元，库函数和Shell命令最终都依赖系统调用实现。
+**8. 系统调用（System Call）**&#x7CFB;统调用是用户程序请求内核服务的接口，是用户态进入内核态的唯一合法途径。常见的系统调用有 open()、read()、write()、fork()、exec() 等。当应用程序需要访问硬件设备、创建进程、分配内存时，必须通过系统调用陷入内核，由内核代表应用程序完成操作。系统调用是操作系统提供的最小功能单元，库函数和 Shell 命令最终都依赖系统调用实现。
 
-**9. POSIX**POSIX（Portable Operating System Interface）是IEEE制定的操作系统接口标准，旨在确保不同Unix系统之间的应用程序可移植性。POSIX定义了系统调用、库函数、Shell、环境变量等规范。Linux遵循POSIX标准，因此许多为其他Unix系统编写的程序可以不经修改地在Linux上编译运行，这也是Linux能够成为Unix生态重要成员的原因。
+**9. POSIX**POSIX（Portable Operating System Interface）是 IEEE 制定的操作系统接口标准，旨在确保不同 Unix 系统之间的应用程序可移植性。POSIX 定义了系统调用、库函数、Shell、环境变量等规范。Linux 遵循 POSIX 标准，因此许多为其他 Unix 系统编写的程序可以不经修改地在 Linux 上编译运行，这也是 Linux 能够成为 Unix 生态重要成员的原因。
 
-**10. GNU工具集**GNU（GNU's Not Unix）是自由软件基金会发起的项目，旨在创建一个完全自由的操作系统。GNU工具集包括编译器（GCC）、调试器（GDB）、文本编辑器（Emacs）、Shell（Bash）以及大量命令行工具（ls、grep、sed、awk等）。Linux内核与GNU工具集结合，形成了完整的操作系统，因此严格来说应称为“GNU/Linux”。
+**10. GNU 工具集**GNU（GNU's Not Unix）是自由软件基金会发起的项目，旨在创建一个完全自由的操作系统。GNU 工具集包括编译器（GCC）、调试器（GDB）、文本编辑器（Emacs）、Shell（Bash）以及大量命令行工具（ls、grep、sed、awk 等）。Linux 内核与 GNU 工具集结合，形成了完整的操作系统，因此严格来说应称为“GNU/Linux”。
 
-**11. 引导流程（Boot Process）**&#x4C;inux系统的引导流程从BIOS/UEFI开始，依次经过引导加载程序（GRUB）、内核加载、init进程启动（现代系统使用systemd）。具体步骤：BIOS/UEFI执行硬件自检并加载GRUB；GRUB读取配置文件，加载内核和**initramfs**（初始内存文件系统）到内存；内核初始化硬件、挂载根文件系统；最后启动init进程（PID=1），由init负责启动其他系统服务。整个流程体现了从硬件到软件的逐层抽象。
+**11. 引导流程（Boot Process）**&#x4C;inux 系统的引导流程从 BIOS/UEFI 开始，依次经过引导加载程序（GRUB）、内核加载、init 进程启动（现代系统使用 systemd）。具体步骤：BIOS/UEFI 执行硬件自检并加载 GRUB；GRUB 读取配置文件，加载内核和**initramfs**（初始内存文件系统）到内存；内核初始化硬件、挂载根文件系统；最后启动 init 进程（PID=1），由 init 负责启动其他系统服务。整个流程体现了从硬件到软件的逐层抽象。
 
-**12. init 系统**init是系统启动后的第一个用户空间进程，负责启动、监控和终止其他系统服务。传统SysV init使用串行启动方式，效率较低；现代Linux广泛使用systemd，它采用并行启动、按需启动、依赖管理等机制，大大加快了系统启动速度。systemd还提供了systemctl、journalctl等工具，统一管理服务、日志和系统状态。
+**12. init 系统**init 是系统启动后的第一个用户空间进程，负责启动、监控和终止其他系统服务。传统 SysV init 使用串行启动方式，效率较低；现代 Linux 广泛使用 systemd，它采用并行启动、按需启动、依赖管理等机制，大大加快了系统启动速度。systemd 还提供了 systemctl、journalctl 等工具，统一管理服务、日志和系统状态。
 
-**13. cgroups（控制组）**&#x63;groups是Linux内核特性，用于限制、隔离和统计进程组的资源使用（CPU、内存、磁盘I/O、网络带宽）。它通过将进程分组，并为每个组设置资源配额，防止某个进程过度消耗资源影响整个系统。cgroups是容器技术（如Docker、LXC）的底层支撑，每个容器可以看作一个独立的cgroup，实现资源隔离和限制。
+**13. cgroups（控制组）**&#x63;groups 是 Linux 内核特性，用于限制、隔离和统计进程组的资源使用（CPU、内存、磁盘 I/O、网络带宽）。它通过将进程分组，并为每个组设置资源配额，防止某个进程过度消耗资源影响整个系统。cgroups 是容器技术（如 Docker、LXC）的底层支撑，每个容器可以看作一个独立的 cgroup，实现资源隔离和限制。
 
-**14. 命名空间（Namespace）**&#x547D;名空间是Linux内核的隔离机制，为进程提供独立的系统资源视图。常见的命名空间包括PID（进程隔离）、Network（网络栈隔离）、Mount（文件系统挂载点隔离）、UTS（主机名隔离）、IPC（进程间通信隔离）、User（用户ID隔离）等。命名空间与cgroups结合，构成了容器技术的核心，使得容器内的进程仿佛运行在独立的操作系统中。
+**14. 命名空间（Namespace）**&#x547D;名空间是 Linux 内核的隔离机制，为进程提供独立的系统资源视图。常见的命名空间包括 PID（进程隔离）、Network（网络栈隔离）、Mount（文件系统挂载点隔离）、UTS（主机名隔离）、IPC（进程间通信隔离）、User（用户 ID 隔离）等。命名空间与 cgroups 结合，构成了容器技术的核心，使得容器内的进程仿佛运行在独立的操作系统中。
 
-**15. 虚拟文件系统（VFS）**&#x56;FS是Linux内核的抽象层，位于用户进程和具体文件系统之间，定义了一组所有文件系统都支持的数据结构和标准接口（如open、read、write）。用户进程只需与VFS交互，无需关心底层是ext4、XFS还是NFS。VFS屏蔽了不同文件系统的实现差异，实现了“一切皆文件”的设计哲学——普通文件、目录、设备、管道、套接字都通过统一的文件接口操作。
+**15. 虚拟文件系统（VFS）**&#x56;FS 是 Linux 内核的抽象层，位于用户进程和具体文件系统之间，定义了一组所有文件系统都支持的数据结构和标准接口（如 open、read、write）。用户进程只需与 VFS 交互，无需关心底层是 ext4、XFS 还是 NFS。VFS 屏蔽了不同文件系统的实现差异，实现了“一切皆文件”的设计哲学——普通文件、目录、设备、管道、套接字都通过统一的文件接口操作。
 
-**16. sysctl（内核参数动态调优）**&#x73;ysctl是运行时查看和修改内核参数的接口，通过`/proc/sys/`虚拟文件系统实现。使用`sysctl -a`查看所有参数，`sysctl -w net.ipv4.ip_forward=1`临时开启路由转发。持久化配置写入`/etc/sysctl.conf`或`/etc/sysctl.d/*.conf`。生产环境中，`fs.file-max`（最大文件句柄数）、`net.core.somaxconn`（监听队列大小）等参数的调优是保障高并发服务稳定的关键。
+**16. sysctl（内核参数动态调优）**&#x73;ysctl 是运行时查看和修改内核参数的接口，通过`/proc/sys/`虚拟文件系统实现。使用`sysctl -a`查看所有参数，`sysctl -w net.ipv4.ip_forward=1`临时开启路由转发。持久化配置写入`/etc/sysctl.conf`或`/etc/sysctl.d/*.conf`。生产环境中，`fs.file-max`（最大文件句柄数）、`net.core.somaxconn`（监听队列大小）等参数的调优是保障高并发服务稳定的关键。
 
-**17. initramfs（初始内存文件系统）**&#x69;nitramfs是一个临时的根文件系统，在Linux内核启动初期加载到内存中。它包含加载真实根文件系统所需的驱动（如SATA、NVMe、LVM、RAID）和工具。内核先挂载initramfs，执行其中的`/init`脚本探测硬件、加载模块，然后`pivot_root`切换到真正的根目录。initramfs解决了内核体积限制和驱动加载顺序问题，是系统引导不可或缺的一环。
+**17. initramfs（初始内存文件系统）**&#x69;nitramfs 是一个临时的根文件系统，在 Linux 内核启动初期加载到内存中。它包含加载真实根文件系统所需的驱动（如 SATA、NVMe、LVM、RAID）和工具。内核先挂载 initramfs，执行其中的`/init`脚本探测硬件、加载模块，然后`pivot_root`切换到真正的根目录。initramfs 解决了内核体积限制和驱动加载顺序问题，是系统引导不可或缺的一环。
 
-**18. 运行时目录（/run）**`/run`是`tmpfs`（内存文件系统）挂载的临时目录，用于存储系统启动以来的运行时数据，如进程PID文件（`/run/nginx.pid`）、登录会话信息、systemd运行时单元等。与`/var/run`（通常是指向`/run`的符号链接）不同，`/run`在系统启动早期即可用，且重启后数据自动清空，是系统运行时状态的核心存放地。
+**18. 运行时目录（/run）**`/run`是`tmpfs`（内存文件系统）挂载的临时目录，用于存储系统启动以来的运行时数据，如进程 PID 文件（`/run/nginx.pid`）、登录会话信息、systemd 运行时单元等。与`/var/run`（通常是指向`/run`的符号链接）不同，`/run`在系统启动早期即可用，且重启后数据自动清空，是系统运行时状态的核心存放地。
 
-## 二、文件系统与目录结构（新增至22个）
+## 二、文件系统与目录结构（新增至 22 个）
 
-**19. 一切皆文件**“一切皆文件”是Unix/Linux的核心设计哲学，意味着所有系统资源（普通文件、目录、设备、管道、套接字、进程信息等）都可以通过文件描述符和统一的read()/write()接口进行访问。这种抽象简化了程序设计，使得用户可以使用相同的系统调用来操作不同类型的资源。例如，向/dev/null写入数据等同于丢弃数据，从/dev/random读取数据则获得随机数。
+**19. 一切皆文件**“一切皆文件”是 Unix/Linux 的核心设计哲学，意味着所有系统资源（普通文件、目录、设备、管道、套接字、进程信息等）都可以通过文件描述符和统一的 read()/write() 接口进行访问。这种抽象简化了程序设计，使得用户可以使用相同的系统调用来操作不同类型的资源。例如，向/dev/null 写入数据等同于丢弃数据，从/dev/random 读取数据则获得随机数。
 
-**20. 根目录（/）**&#x6839;目录是Linux文件系统树状结构的起点，用斜杠“/”表示。所有文件、目录、设备、挂载点都位于根目录之下。根目录是文件系统的顶层，其内容由FHS标准规定，包含/bin、/etc、/home、/usr、/var等子目录。根目录本身也是一个目录文件，其inode编号通常为2，由系统在格式化时创建。
+**20. 根目录（/）**&#x6839;目录是 Linux 文件系统树状结构的起点，用斜杠“/”表示。所有文件、目录、设备、挂载点都位于根目录之下。根目录是文件系统的顶层，其内容由 FHS 标准规定，包含/bin、/etc、/home、/usr、/var 等子目录。根目录本身也是一个目录文件，其 inode 编号通常为 2，由系统在格式化时创建。
 
-**21. FHS（文件系统层次结构标准）**&#x46;HS定义了Linux系统中目录的布局和用途，确保不同发行版之间的兼容性。例如，/bin存放基本命令（ls、cp），/etc存放配置文件，/var存放可变数据（日志、邮件），/usr存放用户程序和只读数据，/home存放用户家目录。遵循FHS的发行版，用户和管理员可以快速定位文件，便于系统维护和脚本编写。
+**21. FHS（文件系统层次结构标准）**&#x46;HS 定义了 Linux 系统中目录的布局和用途，确保不同发行版之间的兼容性。例如，/bin 存放基本命令（ls、cp），/etc 存放配置文件，/var 存放可变数据（日志、邮件），/usr 存放用户程序和只读数据，/home 存放用户家目录。遵循 FHS 的发行版，用户和管理员可以快速定位文件，便于系统维护和脚本编写。
 
-**22. inode**inode（索引节点）是文件系统中存储文件元数据的数据结构，每个文件或目录都有一个唯一的inode。inode包含文件类型、权限（rwx）、所有者（UID/GID）、文件大小、时间戳（atime/mtime/ctime）、数据块指针、硬链接计数等信息。文件名不存储在inode中，而是存储在目录项中。inode是文件系统的核心，通过它内核可以快速定位文件数据。
+**22. inode**inode（索引节点）是文件系统中存储文件元数据的数据结构，每个文件或目录都有一个唯一的 inode。inode 包含文件类型、权限（rwx）、所有者（UID/GID）、文件大小、时间戳（atime/mtime/ctime）、数据块指针、硬链接计数等信息。文件名不存储在 inode 中，而是存储在目录项中。inode 是文件系统的核心，通过它内核可以快速定位文件数据。
 
-**23. 硬链接（Hard Link）**&#x786C;链接是多个目录项指向同一个inode的链接方式。创建硬链接后，文件名和原文件共享相同的inode和数据块，删除其中一个不会影响另一个（只有当链接计数降为0时，inode和数据块才会被释放）。硬链接不能跨文件系统创建，也不能用于目录（防止形成循环）。硬链接常用于备份和文件共享，节省磁盘空间。
+**23. 硬链接（Hard Link）**&#x786C;链接是多个目录项指向同一个 inode 的链接方式。创建硬链接后，文件名和原文件共享相同的 inode 和数据块，删除其中一个不会影响另一个（只有当链接计数降为 0 时，inode 和数据块才会被释放）。硬链接不能跨文件系统创建，也不能用于目录（防止形成循环）。硬链接常用于备份和文件共享，节省磁盘空间。
 
 **24. 符号链接（Symbolic Link）**&#x7B26;号链接（软链接）是一个独立的文件，其内容存储了目标文件的路径。访问符号链接时，内核会自动重定向到目标文件。与硬链接不同，符号链接可以跨文件系统，也可以指向目录。但删除原文件后，符号链接会变成“悬空链接”，访问时会报错。符号链接常用于创建快捷方式、管理软件版本（如/usr/bin/python -> python3）。
 
-**25. 挂载（Mount）**&#x6302;载是将一个文件系统附加到目录树的过程，使得该文件系统的内容可以通过指定的挂载点目录访问。例如，mount /dev/sda1 /mnt 将分区/dev/sda1挂载到/mnt目录。挂载点必须是已存在的空目录，挂载后该目录的原有内容会被临时隐藏。Linux支持多种文件系统类型，通过mount命令的-t参数指定。持久化挂载需写入/etc/fstab文件。
+**25. 挂载（Mount）**&#x6302;载是将一个文件系统附加到目录树的过程，使得该文件系统的内容可以通过指定的挂载点目录访问。例如，mount /dev/sda1 /mnt 将分区/dev/sda1 挂载到/mnt 目录。挂载点必须是已存在的空目录，挂载后该目录的原有内容会被临时隐藏。Linux 支持多种文件系统类型，通过 mount 命令的-t 参数指定。持久化挂载需写入/etc/fstab 文件。
 
-**26. ext4**ext4是第四代扩展文件系统，是Linux最主流的文件系统之一。它支持最大1EB的分区和16TB的单个文件，具备日志机制（保证数据一致性）、区段（Extents）分配（减少碎片化）、延迟分配、多块分配等特性。ext4向下兼容ext2/ext3，性能稳定，适用于服务器系统盘、个人电脑和普通数据存储。
+**26. ext4**ext4 是第四代扩展文件系统，是 Linux 最主流的文件系统之一。它支持最大 1EB 的分区和 16TB 的单个文件，具备日志机制（保证数据一致性）、区段（Extents）分配（减少碎片化）、延迟分配、多块分配等特性。ext4 向下兼容 ext2/ext3，性能稳定，适用于服务器系统盘、个人电脑和普通数据存储。
 
-**27. XFS**XFS是一种高性能64位日志文件系统，由SGI开发，现为RHEL/CentOS的默认文件系统。它支持最大8EB的分区和9EB的单个文件，并发读写性能优异，特别适合大文件和视频存储场景。XFS采用分配组（Allocation Group）设计，支持在线扩容，但缩容较困难。在数据库服务器和高性能计算集群中广泛使用。
+**27. XFS**XFS 是一种高性能 64 位日志文件系统，由 SGI 开发，现为 RHEL/CentOS 的默认文件系统。它支持最大 8EB 的分区和 9EB 的单个文件，并发读写性能优异，特别适合大文件和视频存储场景。XFS 采用分配组（Allocation Group）设计，支持在线扩容，但缩容较困难。在数据库服务器和高性能计算集群中广泛使用。
 
-**28. Btrfs**Btrfs（B-tree文件系统）是一种写时复制（CoW）文件系统，支持快照、压缩、子卷、RAID管理、数据校验等高级功能。它允许动态调整分区大小，提供自我修复能力（通过校验和检测数据损坏）。**时至今日，Btrfs已进入生产就绪状态，是RHEL 9和Fedora的默认文件系统**，在容器存储、桌面系统和通用服务器中应用广泛；但在极高并发OLTP数据库场景下，仍需结合具体负载进行压测评估。
+**28. Btrfs**Btrfs（B-tree 文件系统）是一种写时复制（CoW）文件系统，支持快照、压缩、子卷、RAID 管理、数据校验等高级功能。它允许动态调整分区大小，提供自我修复能力（通过校验和检测数据损坏）。**时至今日，Btrfs 已进入生产就绪状态，是 RHEL 9 和 Fedora 的默认文件系统**，在容器存储、桌面系统和通用服务器中应用广泛；但在极高并发 OLTP 数据库场景下，仍需结合具体负载进行压测评估。
 
-**29. LVM（逻辑卷管理）**&#x4C;VM是Linux存储管理的抽象层，将物理磁盘（PV）组合成卷组（VG），再从中划分逻辑卷（LV）。逻辑卷支持在线动态扩容、缩容（需文件系统配合）、快照回滚和条带化。LVM极大地提高了存储的灵活性，生产环境中通常将系统盘和数据库目录部署在LVM上，以便在磁盘空间不足时在线扩展，避免了停机扩容的麻烦。
+**29. LVM（逻辑卷管理）**&#x4C;VM 是 Linux 存储管理的抽象层，将物理磁盘（PV）组合成卷组（VG），再从中划分逻辑卷（LV）。逻辑卷支持在线动态扩容、缩容（需文件系统配合）、快照回滚和条带化。LVM 极大地提高了存储的灵活性，生产环境中通常将系统盘和数据库目录部署在 LVM 上，以便在磁盘空间不足时在线扩展，避免了停机扩容的麻烦。
 
-**30. RAID（独立磁盘冗余阵列）**&#x52;AID通过将多块物理磁盘组合成一个逻辑单元，实现性能提升或数据冗余。常用级别：RAID 0（条带化，性能高但无冗余）、RAID 1（镜像，高冗余但容量减半）、RAID 5（分布式奇偶校验，兼顾容量与冗余）、RAID 10（镜像+条带，性能与冗余兼得）。Linux支持软RAID（通过`mdadm`管理）和硬件RAID。在服务器部署中，系统盘常用RAID 1，数据盘常用RAID 10或RAID 5。
+**30. RAID（独立磁盘冗余阵列）**&#x52;AID 通过将多块物理磁盘组合成一个逻辑单元，实现性能提升或数据冗余。常用级别：RAID 0（条带化，性能高但无冗余）、RAID 1（镜像，高冗余但容量减半）、RAID 5（分布式奇偶校验，兼顾容量与冗余）、RAID 10（镜像 + 条带，性能与冗余兼得）。Linux 支持软 RAID（通过`mdadm`管理）和硬件 RAID。在服务器部署中，系统盘常用 RAID 1，数据盘常用 RAID 10 或 RAID 5。
 
-**31. Swap（交换空间）**&#x53;wap是磁盘上的交换分区或交换文件，当物理内存不足时，内核将不活跃的内存页换出到Swap，从而释放物理内存给活跃进程。Swap并非越多越好，传统“双倍内存”规则已过时。核心调优参数是`vm.swappiness`（默认60），值越小越倾向使用物理内存，值越大越积极换出。在容器和数据库环境中，常调低`swappiness`以保障性能。
+**31. Swap（交换空间）**&#x53;wap 是磁盘上的交换分区或交换文件，当物理内存不足时，内核将不活跃的内存页换出到 Swap，从而释放物理内存给活跃进程。Swap 并非越多越好，传统“双倍内存”规则已过时。核心调优参数是`vm.swappiness`（默认 60），值越小越倾向使用物理内存，值越大越积极换出。在容器和数据库环境中，常调低`swappiness`以保障性能。
 
-**32. /proc**/proc是一个虚拟文件系统，不占用磁盘空间，由内核在内存中动态生成。它反映了内核和进程的实时状态，例如/proc/cpuinfo显示CPU信息，/proc/meminfo显示内存使用情况，/proc/\/ 目录下包含每个进程的详细信息。用户可以通过读取/proc文件获取系统信息，也可以通过写入某些文件（如/proc/sys/）动态调整内核参数。
+**32. /proc**/proc 是一个虚拟文件系统，不占用磁盘空间，由内核在内存中动态生成。它反映了内核和进程的实时状态，例如/proc/cpuinfo 显示 CPU 信息，/proc/meminfo 显示内存使用情况，/proc/\/ 目录下包含每个进程的详细信息。用户可以通过读取/proc 文件获取系统信息，也可以通过写入某些文件（如/proc/sys/）动态调整内核参数。
 
-**33. /sys**/sys是sysfs虚拟文件系统，提供设备、驱动、电源管理、总线等硬件信息的统一视图。它由内核在启动时创建，将设备模型以文件形式呈现。例如，/sys/class/net/ 下包含网卡信息，/sys/block/ 下包含块设备信息。udev工具利用/sys中的信息动态管理设备节点，实现即插即用功能。
+**33. /sys**/sys 是 sysfs 虚拟文件系统，提供设备、驱动、电源管理、总线等硬件信息的统一视图。它由内核在启动时创建，将设备模型以文件形式呈现。例如，/sys/class/net/ 下包含网卡信息，/sys/block/ 下包含块设备信息。udev 工具利用/sys 中的信息动态管理设备节点，实现即插即用功能。
 
-**34. /dev**/dev目录存放设备文件，是用户空间访问硬件设备的接口。设备文件分为字符设备（如/dev/tty、/dev/random）和块设备（如/dev/sda、/dev/nvme0n1）。传统上设备文件是静态创建的，现代Linux使用udev（用户空间设备管理器）动态创建和删除设备节点，当硬件插入或移除时自动更新/dev目录。
+**34. /dev**/dev 目录存放设备文件，是用户空间访问硬件设备的接口。设备文件分为字符设备（如/dev/tty、/dev/random）和块设备（如/dev/sda、/dev/nvme0n1）。传统上设备文件是静态创建的，现代 Linux 使用 udev（用户空间设备管理器）动态创建和删除设备节点，当硬件插入或移除时自动更新/dev 目录。
 
-**35. /tmp**/tmp目录用于存放临时文件，任何用户都可以在此创建文件，但通常只有文件所有者才能删除（粘滞位保护）。/tmp通常挂载为tmpfs（基于内存的文件系统），重启后内容自动清空。系统服务也会使用/tmp存储临时数据，因此应确保/tmp有足够的空间并定期清理。
+**35. /tmp**/tmp 目录用于存放临时文件，任何用户都可以在此创建文件，但通常只有文件所有者才能删除（粘滞位保护）。/tmp 通常挂载为 tmpfs（基于内存的文件系统），重启后内容自动清空。系统服务也会使用/tmp 存储临时数据，因此应确保/tmp 有足够的空间并定期清理。
 
-**36. /var**/var目录存放可变数据，包括系统日志（/var/log）、邮件队列（/var/mail）、打印队列（/var/spool）、数据库文件（/var/lib）、临时文件（/var/tmp）等。与/tmp不同，/var/tmp中的文件在重启后通常保留。/var是系统运行过程中数据增长的主要区域，需要监控磁盘使用情况，并配置logrotate等工具管理日志轮转。
+**36. /var**/var 目录存放可变数据，包括系统日志（/var/log）、邮件队列（/var/mail）、打印队列（/var/spool）、数据库文件（/var/lib）、临时文件（/var/tmp）等。与/tmp 不同，/var/tmp 中的文件在重启后通常保留。/var 是系统运行过程中数据增长的主要区域，需要监控磁盘使用情况，并配置 logrotate 等工具管理日志轮转。
 
-## 三、文件操作与权限（新增至14个）
+## 三、文件操作与权限（新增至 14 个）
 
-**37. 文件权限（rwx）**&#x4C;inux文件权限使用9位二进制表示，分为三组：所有者（User）、所属组（Group）、其他用户（Other），每组包含读（r=4）、写（w=2）、执行（x=1）三种权限。例如，-rwxr-xr--表示所有者可读写执行，组用户可读可执行，其他用户只读。权限通过chmod命令修改，数字模式（如755）或符号模式（如u+x）均可。权限信息存储在inode中。
+**37. 文件权限（rwx）**&#x4C;inux 文件权限使用 9 位二进制表示，分为三组：所有者（User）、所属组（Group）、其他用户（Other），每组包含读（r=4）、写（w=2）、执行（x=1）三种权限。例如，-rwxr-xr--表示所有者可读写执行，组用户可读可执行，其他用户只读。权限通过 chmod 命令修改，数字模式（如 755）或符号模式（如 u+x）均可。权限信息存储在 inode 中。
 
-**38. chmod**chmod用于修改文件或目录的访问权限。数字模式：chmod 755 file 将权限设为rwxr-xr-x（所有者7=4+2+1，组5=4+1，其他5=4+1）。符号模式：chmod u+x file 给所有者添加执行权限，chmod o-w file 移除其他用户的写权限。chmod -R 可递归修改目录及其子文件权限。注意：只有文件所有者和root才能修改权限。
+**38. chmod**chmod 用于修改文件或目录的访问权限。数字模式：chmod 755 file 将权限设为 rwxr-xr-x（所有者 7=4+2+1，组 5=4+1，其他 5=4+1）。符号模式：chmod u+x file 给所有者添加执行权限，chmod o-w file 移除其他用户的写权限。chmod -R 可递归修改目录及其子文件权限。注意：只有文件所有者和 root 才能修改权限。
 
-**39. chown**chown用于修改文件或目录的所有者和所属组。语法：chown user:group file，例如chown alice:staff data.txt 将文件所有者改为alice，组改为staff。只修改所有者：chown alice file；只修改组：chown :staff file。chown -R 递归修改。普通用户不能将文件所有权转让给他人，只有root可以任意修改。
+**39. chown**chown 用于修改文件或目录的所有者和所属组。语法：chown user:group file，例如 chown alice:staff data.txt 将文件所有者改为 alice，组改为 staff。只修改所有者：chown alice file；只修改组：chown :staff file。chown -R 递归修改。普通用户不能将文件所有权转让给他人，只有 root 可以任意修改。
 
-**40. chgrp**chgrp专门用于修改文件或目录的所属组，功能与chown :group相同。语法：chgrp group file。普通用户只能将文件组改为自己所属的组（且必须是该组的成员），root可以改为任意组。chgrp -R 递归修改。chgrp是chown的子集，但单独提供便于记忆和使用。
+**40. chgrp**chgrp 专门用于修改文件或目录的所属组，功能与 chown :group 相同。语法：chgrp group file。普通用户只能将文件组改为自己所属的组（且必须是该组的成员），root 可以改为任意组。chgrp -R 递归修改。chgrp 是 chown 的子集，但单独提供便于记忆和使用。
 
-**41. umask**umask是文件创建时的默认权限掩码，用于控制新文件或目录的初始权限。umask值从系统权限中减去，得到实际权限。例如，umask 022 表示新文件权限为666-022=644（rw-r--r--），新目录权限为777-022=755（rwxr-xr-x）。umask通常在Shell配置文件（如.bashrc）中设置，影响当前会话中所有新建文件。
+**41. umask**umask 是文件创建时的默认权限掩码，用于控制新文件或目录的初始权限。umask 值从系统权限中减去，得到实际权限。例如，umask 022 表示新文件权限为 666-022=644（rw-r--r--），新目录权限为 777-022=755（rwxr-xr-x）。umask 通常在 Shell 配置文件（如.bashrc）中设置，影响当前会话中所有新建文件。
 
-**42. ACL（访问控制列表）**&#x41;CL提供了比传统rwx更细粒度的权限控制，允许为特定用户或组单独设置权限，而不仅限于所有者、组和其他三类。例如，setfacl -m u:alice:rw file 给用户alice赋予读写权限。ACL通过getfacl查看，setfacl设置。ACL在需要复杂权限共享的场景（如多用户协作的项目目录）中非常有用，但会略微增加文件系统开销。
+**42. ACL（访问控制列表）**&#x41;CL 提供了比传统 rwx 更细粒度的权限控制，允许为特定用户或组单独设置权限，而不仅限于所有者、组和其他三类。例如，setfacl -m u:alice:rw file 给用户 alice 赋予读写权限。ACL 通过 getfacl 查看，setfacl 设置。ACL 在需要复杂权限共享的场景（如多用户协作的项目目录）中非常有用，但会略微增加文件系统开销。
 
-**43. setuid/setgid**setuid和setgid是特殊权限位，当应用于可执行文件时，允许用户以文件所有者（setuid）或文件所属组（setgid）的身份运行该程序，而不是以当前用户身份。例如，/usr/bin/passwd设置了setuid位，普通用户执行它时临时获得root权限，从而可以修改/etc/shadow文件。setgid还可用于目录，使在该目录下创建的新文件继承目录的组。
+**43. setuid/setgid**setuid 和 setgid 是特殊权限位，当应用于可执行文件时，允许用户以文件所有者（setuid）或文件所属组（setgid）的身份运行该程序，而不是以当前用户身份。例如，/usr/bin/passwd 设置了 setuid 位，普通用户执行它时临时获得 root 权限，从而可以修改/etc/shadow 文件。setgid 还可用于目录，使在该目录下创建的新文件继承目录的组。
 
-**44. 粘滞位（Sticky Bit）**&#x7C98;滞位（t位）主要用于/tmp等共享目录，防止非文件所有者删除或重命名其他用户的文件。设置粘滞位后，目录的权限显示为drwxrwxrwt（最后一位t）。只有文件所有者、目录所有者或root才能删除文件。粘滞位通过chmod +t dir设置，对普通文件无意义。它是多用户系统中保护临时文件安全的重要机制。
+**44. 粘滞位（Sticky Bit）**&#x7C98;滞位（t 位）主要用于/tmp 等共享目录，防止非文件所有者删除或重命名其他用户的文件。设置粘滞位后，目录的权限显示为 drwxrwxrwt（最后一位 t）。只有文件所有者、目录所有者或 root 才能删除文件。粘滞位通过 chmod +t dir 设置，对普通文件无意义。它是多用户系统中保护临时文件安全的重要机制。
 
-**45. chattr（文件属性与不可变位）**&#x63;hattr用于设置文件的扩展属性（ext2/ext3/ext4系列文件系统特有）。生产环境最常用`chattr +i /etc/shadow`（设置不可变位），此时任何用户（包括root）都无法修改、删除或重命名该文件，除非执行`chattr -i`解除。`chattr +a`仅允许追加写入，适合日志文件。`lsattr`查看属性。这是系统安全加固中防御勒索病毒或恶意篡改的终极防线之一。
+**45. chattr（文件属性与不可变位）**&#x63;hattr 用于设置文件的扩展属性（ext2/ext3/ext4 系列文件系统特有）。生产环境最常用`chattr +i /etc/shadow`（设置不可变位），此时任何用户（包括 root）都无法修改、删除或重命名该文件，除非执行`chattr -i`解除。`chattr +a`仅允许追加写入，适合日志文件。`lsattr`查看属性。这是系统安全加固中防御勒索病毒或恶意篡改的终极防线之一。
 
-**46. Linux Capabilities（能力机制）**&#x43;apabilities将root的超级权限拆分为独立的“能力位”（如`CAP_NET_ADMIN`管理网络、`CAP_SYS_TIME`修改系统时间、`CAP_NET_BIND_SERVICE`绑定1024以下端口）。通过`setcap cap_net_bind_service+ep /usr/bin/nginx`，普通用户也能启动监听80端口的Nginx，无需`setuid`赋权整个root。这种“最小权限”原则极大降低了安全风险，是容器化和现代服务部署的重要实践。
+**46. Linux Capabilities（能力机制）**&#x43;apabilities 将 root 的超级权限拆分为独立的“能力位”（如`CAP_NET_ADMIN`管理网络、`CAP_SYS_TIME`修改系统时间、`CAP_NET_BIND_SERVICE`绑定 1024 以下端口）。通过`setcap cap_net_bind_service+ep /usr/bin/nginx`，普通用户也能启动监听 80 端口的 Nginx，无需`setuid`赋权整个 root。这种“最小权限”原则极大降低了安全风险，是容器化和现代服务部署的重要实践。
 
-**47. ls -l**ls -l以长格式列出文件详细信息，输出格式为：-rw-r--r-- 1 alice staff 1024 Jan 1 10:00 file.txt。各部分含义：第一个字符表示文件类型（-普通文件，d目录，l符号链接），后9位为权限，数字为硬链接计数，alice为所有者，staff为所属组，1024为文件大小（字节），Jan 1 10:00为最后修改时间，file.txt为文件名。ls -i可同时显示inode编号。
+**47. ls -l**ls -l 以长格式列出文件详细信息，输出格式为：-rw-r--r-- 1 alice staff 1024 Jan 1 10:00 file.txt。各部分含义：第一个字符表示文件类型（-普通文件，d 目录，l 符号链接），后 9 位为权限，数字为硬链接计数，alice 为所有者，staff 为所属组，1024 为文件大小（字节），Jan 1 10:00 为最后修改时间，file.txt 为文件名。ls -i 可同时显示 inode 编号。
 
-**48. find**find是强大的文件搜索命令，支持按名称、类型、大小、时间、权限、所有者等条件查找文件。基本语法：find \[路径] \[条件] \[动作]。例如，find /home -name "\*.txt" 查找所有.txt文件；find /var -size +100M 查找大于100MB的文件；find . -mtime -7 查找7天内修改过的文件。find还支持-exec参数对找到的文件执行命令，是系统管理和脚本编写的重要工具。
+**48. find**find 是强大的文件搜索命令，支持按名称、类型、大小、时间、权限、所有者等条件查找文件。基本语法：find \[路径] \[条件] \[动作]。例如，find /home -name "\*.txt" 查找所有.txt 文件；find /var -size +100M 查找大于 100MB 的文件；find . -mtime -7 查找 7 天内修改过的文件。find 还支持-exec 参数对找到的文件执行命令，是系统管理和脚本编写的重要工具。
 
-**49. xargs**xargs用于将标准输入数据转换成命令行参数，常与管道和find配合使用，解决“参数列表过长”问题。例如，`find /tmp -name "*.log" | xargs rm -f`批量删除日志文件。xargs支持`-n`（分组数量）、`-P`（并行进程数）等高级选项，是Shell批处理任务中不可或缺的性能利器。
+**49. xargs**xargs 用于将标准输入数据转换成命令行参数，常与管道和 find 配合使用，解决“参数列表过长”问题。例如，`find /tmp -name "*.log" | xargs rm -f`批量删除日志文件。xargs 支持`-n`（分组数量）、`-P`（并行进程数）等高级选项，是 Shell 批处理任务中不可或缺的性能利器。
 
-**50. sort / uniq**sort用于对文本行进行排序（`-n`数字排序，`-r`降序，`-k`指定字段）；uniq用于报告或忽略重复行（通常与sort联用，如`sort file | uniq -c`统计重复次数）。两者在日志分析（如统计IP访问频率`awk '{print $1}' access.log | sort | uniq -c | sort -nr`）中频繁出场，是文本统计的黄金组合。
+**50. sort / uniq**sort 用于对文本行进行排序（`-n`数字排序，`-r`降序，`-k`指定字段）；uniq 用于报告或忽略重复行（通常与 sort 联用，如`sort file | uniq -c`统计重复次数）。两者在日志分析（如统计 IP 访问频率`awk '{print $1}' access.log | sort | uniq -c | sort -nr`）中频繁出场，是文本统计的黄金组合。
 
-## 四、进程与作业管理（新增至14个）
+## 四、进程与作业管理（新增至 14 个）
 
-**51. 进程（Process）**&#x8FDB;程是程序在计算机上的一次执行活动，是系统进行资源分配和调度的基本单位。每个进程有独立的地址空间、文件描述符、环境变量等资源。进程由内核创建，通过fork()系统调用复制父进程，再通过exec()加载新程序。进程拥有唯一PID（进程ID），所有进程形成树状结构，根为init（PID=1）。进程是动态的，有生命周期：创建、运行、等待、终止。
+**51. 进程（Process）**&#x8FDB;程是程序在计算机上的一次执行活动，是系统进行资源分配和调度的基本单位。每个进程有独立的地址空间、文件描述符、环境变量等资源。进程由内核创建，通过 fork() 系统调用复制父进程，再通过 exec() 加载新程序。进程拥有唯一 PID（进程 ID），所有进程形成树状结构，根为 init（PID=1）。进程是动态的，有生命周期：创建、运行、等待、终止。
 
-**52. 守护进程（Daemon）**&#x5B88;护进程是后台持续运行的服务进程，通常以d结尾（如sshd、httpd、crond）。它们脱离终端控制，在系统启动时自动启动，并在后台等待处理请求。守护进程通过fork()创建子进程后，父进程退出，子进程调用setsid()创建新会话，从而与终端完全脱离。守护进程是Linux服务架构的基础，常见于网络服务、系统监控、定时任务等。
+**52. 守护进程（Daemon）**&#x5B88;护进程是后台持续运行的服务进程，通常以 d 结尾（如 sshd、httpd、crond）。它们脱离终端控制，在系统启动时自动启动，并在后台等待处理请求。守护进程通过 fork() 创建子进程后，父进程退出，子进程调用 setsid() 创建新会话，从而与终端完全脱离。守护进程是 Linux 服务架构的基础，常见于网络服务、系统监控、定时任务等。
 
-**53. PID**PID（进程标识符）是系统为每个进程分配的唯一正整数，用于区分不同进程。PID从1开始（init/systemd），最大值为/proc/sys/kernel/pid\_max（通常32768）。当进程终止后，其PID可被新进程重用，但系统会避免立即重用。PID是进程管理的基础，通过PID可以使用kill、renice、wait等命令操作特定进程。
+**53. PID**PID（进程标识符）是系统为每个进程分配的唯一正整数，用于区分不同进程。PID 从 1 开始（init/systemd），最大值为/proc/sys/kernel/pid\_max（通常 32768）。当进程终止后，其 PID 可被新进程重用，但系统会避免立即重用。PID 是进程管理的基础，通过 PID 可以使用 kill、renice、wait 等命令操作特定进程。
 
-**54. PPID**PPID（父进程ID）是创建当前进程的父进程的PID。每个进程都有父进程（除了init），通过ps -ef或pstree命令可以查看进程树。PPID在进程创建时由内核设置，用于追踪进程层级关系。当父进程先于子进程终止时，子进程成为孤儿进程，被init收养，其PPID变为1。
+**54. PPID**PPID（父进程 ID）是创建当前进程的父进程的 PID。每个进程都有父进程（除了 init），通过 ps -ef 或 pstree 命令可以查看进程树。PPID 在进程创建时由内核设置，用于追踪进程层级关系。当父进程先于子进程终止时，子进程成为孤儿进程，被 init 收养，其 PPID 变为 1。
 
-**55. 僵尸进程（Zombie）**&#x50F5;尸进程是已经终止但未被父进程回收的进程，其进程描述符仍保留在进程表中，占用一个PID。僵尸进程不占用CPU和内存，但会消耗进程表项（系统资源有限）。如果父进程没有调用wait()或waitpid()来获取子进程的退出状态，子进程就会变成僵尸。父进程终止后，僵尸进程会被init收养并自动清理。
+**55. 僵尸进程（Zombie）**&#x50F5;尸进程是已经终止但未被父进程回收的进程，其进程描述符仍保留在进程表中，占用一个 PID。僵尸进程不占用 CPU 和内存，但会消耗进程表项（系统资源有限）。如果父进程没有调用 wait() 或 waitpid() 来获取子进程的退出状态，子进程就会变成僵尸。父进程终止后，僵尸进程会被 init 收养并自动清理。
 
-**56. 孤儿进程**孤儿进程是指父进程先于子进程终止的进程。此时子进程成为孤儿，被init（PID=1）收养，init会定期调用wait()回收它们。孤儿进程不会变成僵尸，因为init会自动处理。孤儿进程在后台运行时不会产生问题，但如果父进程意外崩溃，子进程可能失去控制，需要系统管理员注意。
+**56. 孤儿进程**孤儿进程是指父进程先于子进程终止的进程。此时子进程成为孤儿，被 init（PID=1）收养，init 会定期调用 wait() 回收它们。孤儿进程不会变成僵尸，因为 init 会自动处理。孤儿进程在后台运行时不会产生问题，但如果父进程意外崩溃，子进程可能失去控制，需要系统管理员注意。
 
-**57. ps**ps（process status）用于查看当前系统的进程快照。常用选项：ps aux 显示所有进程的详细信息（包括用户、CPU/内存使用率、状态、启动时间等）；ps -ef 显示标准格式；ps -eo pid,ppid,cmd 自定义输出列。ps从/proc文件系统读取进程信息，是系统监控和故障排查的基础工具。
+**57. ps**ps（process status）用于查看当前系统的进程快照。常用选项：ps aux 显示所有进程的详细信息（包括用户、CPU/内存使用率、状态、启动时间等）；ps -ef 显示标准格式；ps -eo pid,ppid,cmd 自定义输出列。ps 从/proc 文件系统读取进程信息，是系统监控和故障排查的基础工具。
 
-**58. top/htop**top是动态实时监控进程资源占用的工具，默认按CPU使用率排序，显示进程ID、用户、CPU%、内存%、运行时间、命令等。按P键按CPU排序，按M键按内存排序，按k键可终止进程。htop是top的增强版，支持彩色显示、鼠标操作、树状视图、垂直/水平滚动，更直观易用。两者都依赖/proc文件系统，是性能分析的首选工具。
+**58. top/htop**top 是动态实时监控进程资源占用的工具，默认按 CPU 使用率排序，显示进程 ID、用户、CPU%、内存%、运行时间、命令等。按 P 键按 CPU 排序，按 M 键按内存排序，按 k 键可终止进程。htop 是 top 的增强版，支持彩色显示、鼠标操作、树状视图、垂直/水平滚动，更直观易用。两者都依赖/proc 文件系统，是性能分析的首选工具。
 
-**59. kill**kill用于向进程发送信号，默认发送SIGTERM（15），请求进程优雅终止。常用信号：kill -9 PID 发送SIGKILL强制终止；kill -15 PID 发送SIGTERM；kill -1 PID 发送SIGHUP（让守护进程重新加载配置）。kill通过PID指定目标进程，如果进程不存在会报错。killall命令可通过进程名发送信号。
+**59. kill**kill 用于向进程发送信号，默认发送 SIGTERM（15），请求进程优雅终止。常用信号：kill -9 PID 发送 SIGKILL 强制终止；kill -15 PID 发送 SIGTERM；kill -1 PID 发送 SIGHUP（让守护进程重新加载配置）。kill 通过 PID 指定目标进程，如果进程不存在会报错。killall 命令可通过进程名发送信号。
 
-**60. nice/renice**nice用于以指定优先级启动程序，renice用于调整已运行进程的优先级。优先级范围从-20（最高）到19（最低），默认值为0。只有root可以设置负优先级（提高优先级）。语法：nice -n 10 command 以较低优先级运行；renice -n 5 -p PID 将进程优先级调整为5。调整优先级可以控制CPU资源分配，确保重要任务获得更多CPU时间。
+**60. nice/renice**nice 用于以指定优先级启动程序，renice 用于调整已运行进程的优先级。优先级范围从 -20（最高）到 19（最低），默认值为 0。只有 root 可以设置负优先级（提高优先级）。语法：nice -n 10 command 以较低优先级运行；renice -n 5 -p PID 将进程优先级调整为 5。调整优先级可以控制 CPU 资源分配，确保重要任务获得更多 CPU 时间。
 
-**61. 作业控制（Job Control）**&#x4F5C;业控制是Shell对前台和后台进程组的管理机制。`command &` 将命令放入后台运行；`Ctrl+Z` 挂起当前前台作业；`jobs` 查看作业列表；`fg %1` 将作业1切回前台；`bg %1` 让作业1在后台继续执行。作业控制允许用户在一个终端内灵活切换多个任务，是交互式Shell高效使用的必备技能。
+**61. 作业控制（Job Control）**&#x4F5C;业控制是 Shell 对前台和后台进程组的管理机制。`command &` 将命令放入后台运行；`Ctrl+Z` 挂起当前前台作业；`jobs` 查看作业列表；`fg %1` 将作业 1 切回前台；`bg %1` 让作业 1 在后台继续执行。作业控制允许用户在一个终端内灵活切换多个任务，是交互式 Shell 高效使用的必备技能。
 
-**62. nohup 与终端复用（screen/tmux）**`nohup command &` 使进程忽略SIGHUP信号，即使退出终端，进程仍继续运行（输出重定向到nohup.out）。更强大的方案是**终端复用器**——`tmux`和`screen`，它们创建持久会话，网络断开后重连即可恢复会话，且支持分屏多窗口。在远程服务器开发、长期运行数据迁移任务中，tmux是事实上的标准工具。
+**62. nohup 与终端复用（screen/tmux）**`nohup command &` 使进程忽略 SIGHUP 信号，即使退出终端，进程仍继续运行（输出重定向到 nohup.out）。更强大的方案是**终端复用器**——`tmux`和`screen`，它们创建持久会话，网络断开后重连即可恢复会话，且支持分屏多窗口。在远程服务器开发、长期运行数据迁移任务中，tmux 是事实上的标准工具。
 
-**63. iostat / iotop**`iostat`（来自sysstat包）报告CPU利用率和磁盘I/O统计信息（如`iostat -x 1`查看每秒的读写速率、`await`等待时间、`util`磁盘繁忙度）。`iotop`类似于`top`，但专门按I/O使用率排序进程。两者是定位“磁盘慢、应用卡顿”问题的核心工具，能快速识别是哪个进程在疯狂读写磁盘导致系统负载过高。
+**63. iostat / iotop**`iostat`（来自 sysstat 包）报告 CPU 利用率和磁盘 I/O 统计信息（如`iostat -x 1`查看每秒的读写速率、`await`等待时间、`util`磁盘繁忙度）。`iotop`类似于`top`，但专门按 I/O 使用率排序进程。两者是定位“磁盘慢、应用卡顿”问题的核心工具，能快速识别是哪个进程在疯狂读写磁盘导致系统负载过高。
 
-**64. 平均负载（Load Average）**&#x7CFB;统平均负载是单位时间内处于可运行状态（R状态）和不可中断睡眠状态（D状态，通常为等待I/O）的进程平均数。`top`或`uptime`显示1分钟、5分钟、15分钟三个值。理想情况下，负载值应小于CPU核心数。若负载长期高于核心数，通常意味着CPU资源不足或磁盘I/O瓶颈，是性能告警的首要关注指标。
+**64. 平均负载（Load Average）**&#x7CFB;统平均负载是单位时间内处于可运行状态（R 状态）和不可中断睡眠状态（D 状态，通常为等待 I/O）的进程平均数。`top`或`uptime`显示 1 分钟、5 分钟、15 分钟三个值。理想情况下，负载值应小于 CPU 核心数。若负载长期高于核心数，通常意味着 CPU 资源不足或磁盘 I/O 瓶颈，是性能告警的首要关注指标。
 
-## 五、信号与进程间通信（8个，保持原样，新增信号trap概念移植至Shell章节）
+## 五、信号与进程间通信（8 个，保持原样，新增信号 trap 概念移植至 Shell 章节）
 
-**65. 信号（Signal）**&#x4FE1;号是软件中断，用于通知进程发生了异步事件。信号由内核或另一个进程发送，进程可以捕获、忽略或执行默认操作。Linux支持多种信号，如SIGINT（Ctrl+C）、SIGTERM（终止请求）、SIGKILL（强制终止）、SIGCHLD（子进程状态变化）等。信号是进程间通信的一种简单方式，常用于进程控制、错误通知和定时器。
+**65. 信号（Signal）**&#x4FE1;号是软件中断，用于通知进程发生了异步事件。信号由内核或另一个进程发送，进程可以捕获、忽略或执行默认操作。Linux 支持多种信号，如 SIGINT（Ctrl+C）、SIGTERM（终止请求）、SIGKILL（强制终止）、SIGCHLD（子进程状态变化）等。信号是进程间通信的一种简单方式，常用于进程控制、错误通知和定时器。
 
-**66. SIGKILL (9)**&#x53;IGKILL是强制终止信号，进程无法捕获、忽略或阻塞它。收到SIGKILL后，内核立即终止进程并释放其资源，不给进程任何清理机会。因此，SIGKILL应作为最后手段使用，仅当进程无响应且SIGTERM无效时使用。使用kill -9 PID发送。注意：SIGKILL不能杀死僵尸进程（僵尸已死，只是未回收）。
+**66. SIGKILL (9)**&#x53;IGKILL 是强制终止信号，进程无法捕获、忽略或阻塞它。收到 SIGKILL 后，内核立即终止进程并释放其资源，不给进程任何清理机会。因此，SIGKILL 应作为最后手段使用，仅当进程无响应且 SIGTERM 无效时使用。使用 kill -9 PID 发送。注意：SIGKILL 不能杀死僵尸进程（僵尸已死，只是未回收）。
 
-**67. SIGTERM (15)**&#x53;IGTERM是优雅终止信号，请求进程自行退出。进程可以捕获SIGTERM并执行清理操作（如保存数据、关闭文件、释放资源），然后退出。如果进程忽略SIGTERM，则不会终止。大多数守护进程和应用程序会注册SIGTERM处理函数，实现平滑关闭。使用kill PID（默认发送SIGTERM）或kill -15 PID。
+**67. SIGTERM (15)**&#x53;IGTERM 是优雅终止信号，请求进程自行退出。进程可以捕获 SIGTERM 并执行清理操作（如保存数据、关闭文件、释放资源），然后退出。如果进程忽略 SIGTERM，则不会终止。大多数守护进程和应用程序会注册 SIGTERM 处理函数，实现平滑关闭。使用 kill PID（默认发送 SIGTERM）或 kill -15 PID。
 
-**68. SIGINT (2)**&#x53;IGINT是中断信号，通常由用户按下Ctrl+C触发。前台进程收到SIGINT后，默认行为是终止。进程可以捕获SIGINT并执行自定义操作（如提示确认退出）。SIGINT与SIGTERM类似，但通常用于用户主动中断，而SIGTERM用于系统或管理员请求终止。
+**68. SIGINT (2)**&#x53;IGINT 是中断信号，通常由用户按下 Ctrl+C 触发。前台进程收到 SIGINT 后，默认行为是终止。进程可以捕获 SIGINT 并执行自定义操作（如提示确认退出）。SIGINT 与 SIGTERM 类似，但通常用于用户主动中断，而 SIGTERM 用于系统或管理员请求终止。
 
-**69. SIGCHLD**SIGCHLD是子进程状态变化时（终止、停止、继续）发送给父进程的信号。父进程可以通过捕获SIGCHLD来异步回收子进程，避免子进程变成僵尸。如果父进程不处理SIGCHLD，子进程终止后父进程需要显式调用wait()来回收。现代程序常使用SIGCHLD结合waitpid()实现高效的子进程管理。
+**69. SIGCHLD**SIGCHLD 是子进程状态变化时（终止、停止、继续）发送给父进程的信号。父进程可以通过捕获 SIGCHLD 来异步回收子进程，避免子进程变成僵尸。如果父进程不处理 SIGCHLD，子进程终止后父进程需要显式调用 wait() 来回收。现代程序常使用 SIGCHLD 结合 waitpid() 实现高效的子进程管理。
 
-**70. 管道（Pipe）**&#x7BA1;道是Unix/Linux中最基本的进程间通信方式，将一个命令的标准输出连接到另一个命令的标准输入，用竖线“|”表示。例如，ls -l | grep "txt" 将ls的输出作为grep的输入。管道是单向的、无名的，只能在有亲缘关系的进程（如父子进程）之间使用。管道本质上是内核中的一个缓冲区，默认大小通常为64KB。
+**70. 管道（Pipe）**&#x7BA1;道是 Unix/Linux 中最基本的进程间通信方式，将一个命令的标准输出连接到另一个命令的标准输入，用竖线“|”表示。例如，ls -l | grep "txt" 将 ls 的输出作为 grep 的输入。管道是单向的、无名的，只能在有亲缘关系的进程（如父子进程）之间使用。管道本质上是内核中的一个缓冲区，默认大小通常为 64KB。
 
-**71. 命名管道（FIFO）**&#x547D;名管道（FIFO）是一种特殊的文件类型，通过mkfifo命令创建。与普通管道不同，FIFO有文件名，允许无亲缘关系的进程通过它通信。FIFO遵循先进先出原则，数据以流的形式传输。常用于客户端-服务器模型，例如一个进程写入FIFO，另一个进程读取。FIFO在文件系统中可见，使用ls -l查看时类型为p。
+**71. 命名管道（FIFO）**&#x547D;名管道（FIFO）是一种特殊的文件类型，通过 mkfifo 命令创建。与普通管道不同，FIFO 有文件名，允许无亲缘关系的进程通过它通信。FIFO 遵循先进先出原则，数据以流的形式传输。常用于客户端 - 服务器模型，例如一个进程写入 FIFO，另一个进程读取。FIFO 在文件系统中可见，使用 ls -l 查看时类型为 p。
 
-**72. 信号量（Semaphore）**&#x4FE1;号量是用于同步多个进程对共享资源访问的计数器。它支持两种原子操作：P（等待，减少计数）和V（释放，增加计数）。当计数为0时，P操作会阻塞进程直到其他进程执行V操作。信号量可以解决互斥和同步问题，例如控制对共享内存的访问。Linux提供System V信号量和POSIX信号量两种实现。
+**72. 信号量（Semaphore）**&#x4FE1;号量是用于同步多个进程对共享资源访问的计数器。它支持两种原子操作：P（等待，减少计数）和 V（释放，增加计数）。当计数为 0 时，P 操作会阻塞进程直到其他进程执行 V 操作。信号量可以解决互斥和同步问题，例如控制对共享内存的访问。Linux 提供 System V 信号量和 POSIX 信号量两种实现。
 
-## 六、用户与组管理（8个，保持原样）
+## 六、用户与组管理（8 个，保持原样）
 
-**73. 用户（User）**&#x7528;户是系统资源的访问者，每个用户有唯一的用户名和UID（用户标识符）。用户信息存储在/etc/passwd文件中，包括用户名、加密密码占位符（x）、UID、GID、用户描述、家目录、登录Shell。用户通过登录认证后，获得相应的权限。Linux是多用户系统，支持同时多个用户登录，每个用户拥有独立的家目录和环境。
+**73. 用户（User）**&#x7528;户是系统资源的访问者，每个用户有唯一的用户名和 UID（用户标识符）。用户信息存储在/etc/passwd 文件中，包括用户名、加密密码占位符（x）、UID、GID、用户描述、家目录、登录 Shell。用户通过登录认证后，获得相应的权限。Linux 是多用户系统，支持同时多个用户登录，每个用户拥有独立的家目录和环境。
 
-**74. 组（Group）**&#x7EC4;是用户的集合，用于简化权限管理。每个组有唯一的组名和GID（组标识符）。组信息存储在/etc/group文件中。一个用户可以属于多个组，其中一个是主组（在/etc/passwd中指定），其他为附加组。通过将用户加入特定组，可以批量授予文件访问权限，例如将开发人员加入dev组，然后设置项目目录的组权限为读写。
+**74. 组（Group）**&#x7EC4;是用户的集合，用于简化权限管理。每个组有唯一的组名和 GID（组标识符）。组信息存储在/etc/group 文件中。一个用户可以属于多个组，其中一个是主组（在/etc/passwd 中指定），其他为附加组。通过将用户加入特定组，可以批量授予文件访问权限，例如将开发人员加入 dev 组，然后设置项目目录的组权限为读写。
 
 **75. /etc/passwd**/etc/passwd是系统用户账户信息文件，每行代表一个用户，格式为：用户名:密码占位符:UID:GID:描述:家目录:Shell。例如，alice:x:1000:1000:Alice:/home/alice:/bin/bash。密码字段通常为x，表示密码存储在/etc/shadow中。该文件对所有用户可读，因此不能存储明文密码。修改用户信息应使用usermod、useradd等专用命令。
 
@@ -14212,133 +14212,133 @@ $ sudo memtest86+                        # 从 GRUB 启动
 
 **77. /etc/group**/etc/group存储组信息，每行格式为：组名:密码占位符:GID:成员列表。例如，staff:x:100:alice,bob。密码字段通常为空（x），组密码很少使用。成员列表是用逗号分隔的用户名，表示该组的附加成员。主组成员不在/etc/group中列出，而是通过/etc/passwd中的GID确定。
 
-**78. useradd**useradd用于创建新用户，常用选项：-m 创建家目录，-s 指定Shell，-G 指定附加组，-u 指定UID。例如，useradd -m -s /bin/bash -G sudo alice 创建用户alice，家目录为/home/alice，Shell为bash，加入sudo组。useradd还会在/etc/shadow中创建密码条目（需用passwd设密码）。不同发行版默认行为略有差异。
+**78. useradd**useradd 用于创建新用户，常用选项：-m 创建家目录，-s 指定 Shell，-G 指定附加组，-u 指定 UID。例如，useradd -m -s /bin/bash -G sudo alice 创建用户 alice，家目录为/home/alice，Shell 为 bash，加入 sudo 组。useradd 还会在/etc/shadow 中创建密码条目（需用 passwd 设密码）。不同发行版默认行为略有差异。
 
-**79. passwd**passwd用于设置或修改用户密码。普通用户只能修改自己的密码（需输入旧密码），root可以修改任何用户的密码。passwd会加密新密码并更新/etc/shadow。密码强度由系统策略（如pam\_cracklib）控制，要求包含大小写字母、数字和特殊字符，长度至少8位。使用passwd -l可锁定账户，-u解锁。
+**79. passwd**passwd 用于设置或修改用户密码。普通用户只能修改自己的密码（需输入旧密码），root 可以修改任何用户的密码。passwd 会加密新密码并更新/etc/shadow。密码强度由系统策略（如 pam\_cracklib）控制，要求包含大小写字母、数字和特殊字符，长度至少 8 位。使用 passwd -l 可锁定账户，-u 解锁。
 
-**80. usermod**usermod用于修改已有用户的属性，如用户名（-l）、家目录（-d）、Shell（-s）、UID（-u）、附加组（-aG）等。例如，usermod -aG docker alice 将用户添加到docker组（-a表示追加，防止覆盖现有组）。usermod -L 锁定账户（在密码前加!），-U解锁。修改用户信息后，用户需重新登录才能生效。
+**80. usermod**usermod 用于修改已有用户的属性，如用户名（-l）、家目录（-d）、Shell（-s）、UID（-u）、附加组（-aG）等。例如，usermod -aG docker alice 将用户添加到 docker 组（-a 表示追加，防止覆盖现有组）。usermod -L 锁定账户（在密码前加!），-U 解锁。修改用户信息后，用户需重新登录才能生效。
 
-## 七、网络与远程访问（新增至14个）
+## 七、网络与远程访问（新增至 14 个）
 
-**81. IP地址**IP地址是网络设备的唯一标识，分为IPv4（32位，如192.168.1.1）和IPv6（128位，如fe80::1）。Linux中通过ifconfig或ip addr查看IP地址。IP地址与子网掩码配合使用，确定网络地址和主机地址。IP地址是网络通信的基础，每个网络接口（如eth0、wlan0）可以配置一个或多个IP地址。
+**81. IP 地址**IP 地址是网络设备的唯一标识，分为 IPv4（32 位，如 192.168.1.1）和 IPv6（128 位，如 fe80::1）。Linux 中通过 ifconfig 或 ip addr 查看 IP 地址。IP 地址与子网掩码配合使用，确定网络地址和主机地址。IP 地址是网络通信的基础，每个网络接口（如 eth0、wlan0）可以配置一个或多个 IP 地址。
 
-**82. SSH**SSH（Secure Shell）是加密的远程登录协议，默认端口22。它使用公钥加密技术，确保数据传输的机密性和完整性。SSH客户端（ssh命令）连接到SSH服务器（sshd守护进程），支持密码认证和密钥认证。SSH还支持端口转发、X11转发、文件传输（通过SCP、SFTP）等功能，是Linux系统管理的必备工具。
+**82. SSH**SSH（Secure Shell）是加密的远程登录协议，默认端口 22。它使用公钥加密技术，确保数据传输的机密性和完整性。SSH 客户端（ssh 命令）连接到 SSH 服务器（sshd 守护进程），支持密码认证和密钥认证。SSH 还支持端口转发、X11 转发、文件传输（通过 SCP、SFTP）等功能，是 Linux 系统管理的必备工具。
 
-**83. SCP**SCP（Secure Copy）基于SSH协议，用于在本地和远程主机之间安全复制文件。语法：scp source destination，例如scp file.txt user\@host:/path/。SCP支持递归复制目录（-r）、保留文件属性（-p）等选项。与FTP不同，SCP全程加密，适合传输敏感数据。
+**83. SCP**SCP（Secure Copy）基于 SSH 协议，用于在本地和远程主机之间安全复制文件。语法：scp source destination，例如 scp file.txt user\@host:/path/。SCP 支持递归复制目录（-r）、保留文件属性（-p）等选项。与 FTP 不同，SCP 全程加密，适合传输敏感数据。
 
-**84. rsync（远程增量同步）**&#x72;sync是比SCP更强大的文件传输和同步工具，核心优势是**增量传输**（仅传输差异部分）和**断点续传**。语法：`rsync -avz --progress /local/dir user@host:/remote/dir`。它支持本地复制、远程Shell（SSH）传输、守护进程模式，并能保留权限、属主、时间戳等所有属性。在生产环境中，rsync是日志备份、代码分发、数据迁移的绝对主力工具。
+**84. rsync（远程增量同步）**&#x72;sync 是比 SCP 更强大的文件传输和同步工具，核心优势是**增量传输**（仅传输差异部分）和**断点续传**。语法：`rsync -avz --progress /local/dir user@host:/remote/dir`。它支持本地复制、远程 Shell（SSH）传输、守护进程模式，并能保留权限、属主、时间戳等所有属性。在生产环境中，rsync 是日志备份、代码分发、数据迁移的绝对主力工具。
 
-**85. ping**ping用于测试网络连通性，通过发送ICMP回显请求并等待响应。ping hostname 会持续发送数据包，显示响应时间和丢包率。ping -c 4 hostname 发送4个包后停止。ping是网络故障排查的第一步，可以判断目标主机是否可达、网络延迟是否正常。注意：某些防火墙会屏蔽ICMP，导致ping不通但其他服务正常。
+**85. ping**ping 用于测试网络连通性，通过发送 ICMP 回显请求并等待响应。ping hostname 会持续发送数据包，显示响应时间和丢包率。ping -c 4 hostname 发送 4 个包后停止。ping 是网络故障排查的第一步，可以判断目标主机是否可达、网络延迟是否正常。注意：某些防火墙会屏蔽 ICMP，导致 ping 不通但其他服务正常。
 
-**86. netstat/ss**netstat和ss用于查看网络连接、路由表、接口统计等。ss是netstat的现代替代，性能更好。常用选项：ss -tuln 显示所有监听端口（t TCP，u UDP，l监听，n数字格式）；ss -an 显示所有连接。通过ss可以查看哪些服务在监听哪些端口，以及当前建立的连接状态（ESTABLISHED、TIME\_WAIT等），是网络调试的重要工具。
+**86. netstat/ss**netstat 和 ss 用于查看网络连接、路由表、接口统计等。ss 是 netstat 的现代替代，性能更好。常用选项：ss -tuln 显示所有监听端口（t TCP，u UDP，l 监听，n 数字格式）；ss -an 显示所有连接。通过 ss 可以查看哪些服务在监听哪些端口，以及当前建立的连接状态（ESTABLISHED、TIME\_WAIT 等），是网络调试的重要工具。
 
-**87. tcpdump**tcpdump是命令行网络抓包工具，用于捕获和分析网络流量。语法：tcpdump -i eth0 host 192.168.1.1 抓取eth0接口上与192.168.1.1通信的包。支持过滤表达式（如port 80、tcp、udp），可保存到文件（-w）并用Wireshark分析。tcpdump是网络故障排查、协议分析和安全审计的利器，但需要root权限。
+**87. tcpdump**tcpdump 是命令行网络抓包工具，用于捕获和分析网络流量。语法：tcpdump -i eth0 host 192.168.1.1 抓取 eth0 接口上与 192.168.1.1 通信的包。支持过滤表达式（如 port 80、tcp、udp），可保存到文件（-w）并用 Wireshark 分析。tcpdump 是网络故障排查、协议分析和安全审计的利器，但需要 root 权限。
 
-**88. iptables/nftables**iptables是Linux内核的包过滤防火墙工具，通过规则表（filter、nat、mangle）控制网络流量。nftables是iptables的现代替代，语法更简洁，性能更好。防火墙规则可以允许、拒绝或修改数据包，实现访问控制、端口转发、NAT等功能。例如，iptables -A INPUT -p tcp --dport 22 -j ACCEPT 允许SSH连接。防火墙配置通常保存为脚本或使用firewalld管理。
+**88. iptables/nftables**iptables 是 Linux 内核的包过滤防火墙工具，通过规则表（filter、nat、mangle）控制网络流量。nftables 是 iptables 的现代替代，语法更简洁，性能更好。防火墙规则可以允许、拒绝或修改数据包，实现访问控制、端口转发、NAT 等功能。例如，iptables -A INPUT -p tcp --dport 22 -j ACCEPT 允许 SSH 连接。防火墙配置通常保存为脚本或使用 firewalld 管理。
 
-**89. DNS**DNS（域名系统）将域名（如www\.example.com）解析为IP地址。Linux系统通过/etc/resolv.conf配置DNS服务器（如8.8.8.8）。常用DNS工具：nslookup、dig、host。DNS解析是网络通信的前提，如果DNS配置错误，域名将无法访问。
+**89. DNS**DNS（域名系统）将域名（如 www\.example.com）解析为 IP 地址。Linux 系统通过/etc/resolv.conf 配置 DNS 服务器（如 8.8.8.8）。常用 DNS 工具：nslookup、dig、host。DNS 解析是网络通信的前提，如果 DNS 配置错误，域名将无法访问。
 
-**90. systemd-resolved**现代Linux发行版（如Ubuntu、Fedora）使用systemd-resolved管理DNS解析，它通过D-Bus接口提供域名解析，并缓存结果以加速访问。`resolvectl status`查看当前DNS配置，`resolvectl query example.com`测试解析。systemd-resolved监听127.0.0.53，需注意它可能覆盖`/etc/resolv.conf`，新手配置DNS时常在此处踩坑。
+**90. systemd-resolved**现代 Linux 发行版（如 Ubuntu、Fedora）使用 systemd-resolved 管理 DNS 解析，它通过 D-Bus 接口提供域名解析，并缓存结果以加速访问。`resolvectl status`查看当前 DNS 配置，`resolvectl query example.com`测试解析。systemd-resolved 监听 127.0.0.53，需注意它可能覆盖`/etc/resolv.conf`，新手配置 DNS 时常在此处踩坑。
 
-**91. DHCP**DHCP（动态主机配置协议）自动为网络设备分配IP地址、子网掩码、网关、DNS等参数。Linux客户端通过dhclient或NetworkManager获取IP。DHCP服务器（如isc-dhcp-server）管理地址池，避免IP地址冲突。DHCP简化了网络配置，特别适合移动设备和大型网络。静态IP则需手动配置/etc/network/interfaces或使用nmcli。
+**91. DHCP**DHCP（动态主机配置协议）自动为网络设备分配 IP 地址、子网掩码、网关、DNS 等参数。Linux 客户端通过 dhclient 或 NetworkManager 获取 IP。DHCP 服务器（如 isc-dhcp-server）管理地址池，避免 IP 地址冲突。DHCP 简化了网络配置，特别适合移动设备和大型网络。静态 IP 则需手动配置/etc/network/interfaces 或使用 nmcli。
 
-**92. NetworkManager 与 nmcli**NetworkManager是Linux系统的动态网络控制与管理守护进程，不仅管理有线/Wi-Fi网络，还支持VPN、蓝牙共享等。`nmcli`是其命令行工具：`nmcli dev status`查看设备状态，`nmcli con add type ethernet ifname eth0 con-name static ip4 192.168.1.10/24 gw4 192.168.1.1`创建静态连接。无论是在桌面环境还是服务器（RHEL 8+默认启用），nmcli都是现代网络配置的首选工具。
+**92. NetworkManager 与 nmcli**NetworkManager 是 Linux 系统的动态网络控制与管理守护进程，不仅管理有线/Wi-Fi 网络，还支持 VPN、蓝牙共享等。`nmcli`是其命令行工具：`nmcli dev status`查看设备状态，`nmcli con add type ethernet ifname eth0 con-name static ip4 192.168.1.10/24 gw4 192.168.1.1`创建静态连接。无论是在桌面环境还是服务器（RHEL 8+ 默认启用），nmcli 都是现代网络配置的首选工具。
 
-**93. curl/wget**curl和wget是命令行HTTP/HTTPS请求工具。curl功能更丰富，支持多种协议（HTTP、FTP、SMTP等）、自定义请求头、Cookie、认证等。例如，curl -O [https://example.com/file.zip](https://example.com/file.zip) 下载文件。wget更专注于下载，支持递归下载、断点续传。两者都是自动化脚本和API测试的常用工具。
+**93. curl/wget**curl 和 wget 是命令行 HTTP/HTTPS 请求工具。curl 功能更丰富，支持多种协议（HTTP、FTP、SMTP 等）、自定义请求头、Cookie、认证等。例如，curl -O [https://example.com/file.zip](https://example.com/file.zip) 下载文件。wget 更专注于下载，支持递归下载、断点续传。两者都是自动化脚本和 API 测试的常用工具。
 
-## 八、Shell脚本与文本处理（新增至14个）
+## 八、Shell 脚本与文本处理（新增至 14 个）
 
-**94. Bash**Bash（Bourne Again Shell）是Linux默认的Shell，兼容sh，并扩展了命令行编辑、作业控制、数组、算术运算等功能。Bash脚本以#!/bin/bash开头，支持变量、条件判断（if）、循环（for、while）、函数、输入输出重定向等。Bash是系统管理自动化的核心语言，通过编写脚本可以批量处理文件、监控系统、部署应用。
+**94. Bash**Bash（Bourne Again Shell）是 Linux 默认的 Shell，兼容 sh，并扩展了命令行编辑、作业控制、数组、算术运算等功能。Bash 脚本以#!/bin/bash 开头，支持变量、条件判断（if）、循环（for、while）、函数、输入输出重定向等。Bash 是系统管理自动化的核心语言，通过编写脚本可以批量处理文件、监控系统、部署应用。
 
-**95. 环境变量**环境变量是影响进程行为的动态命名值，通过export命令设置。常见环境变量：PATH（可执行文件搜索路径）、HOME（用户家目录）、USER（当前用户名）、LANG（语言环境）、SHELL（当前Shell）。环境变量在进程创建时从父进程继承，子进程可以修改自己的环境变量而不影响父进程。配置文件如.bashrc、.profile用于设置用户环境。
+**95. 环境变量**环境变量是影响进程行为的动态命名值，通过 export 命令设置。常见环境变量：PATH（可执行文件搜索路径）、HOME（用户家目录）、USER（当前用户名）、LANG（语言环境）、SHELL（当前 Shell）。环境变量在进程创建时从父进程继承，子进程可以修改自己的环境变量而不影响父进程。配置文件如.bashrc、.profile 用于设置用户环境。
 
-**96. PATH**PATH环境变量定义了Shell查找可执行文件的目录列表，各目录用冒号分隔。例如，PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin。当用户输入命令时，Shell按顺序在PATH目录中查找同名可执行文件。如果命令不在PATH中，需使用绝对路径或相对路径。修改PATH（如export PATH=\$PATH:/opt/bin）可以扩展命令搜索范围。
+**96. PATH**PATH 环境变量定义了 Shell 查找可执行文件的目录列表，各目录用冒号分隔。例如，PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin。当用户输入命令时，Shell 按顺序在 PATH 目录中查找同名可执行文件。如果命令不在 PATH 中，需使用绝对路径或相对路径。修改 PATH（如 export PATH=\$PATH:/opt/bin）可以扩展命令搜索范围。
 
-**97. grep**grep是强大的文本搜索工具，根据正则表达式匹配文件内容。基本语法：grep pattern file。常用选项：-i 忽略大小写，-r 递归搜索目录，-n 显示行号，-v 反向匹配，-c 统计匹配行数，-E 支持扩展正则。例如，grep -rn "error" /var/log/ 在日志中递归搜索error。grep常与管道结合，用于过滤命令输出。
+**97. grep**grep 是强大的文本搜索工具，根据正则表达式匹配文件内容。基本语法：grep pattern file。常用选项：-i 忽略大小写，-r 递归搜索目录，-n 显示行号，-v 反向匹配，-c 统计匹配行数，-E 支持扩展正则。例如，grep -rn "error" /var/log/ 在日志中递归搜索 error。grep 常与管道结合，用于过滤命令输出。
 
-**98. sed**sed（流编辑器）用于对文本进行非交互式编辑，支持替换、删除、插入、打印等操作。基本语法：sed 's/old/new/g' file。常用命令：s（替换）、d（删除行）、a（追加）、i（插入）、p（打印）。sed逐行处理文本，默认输出到标准输出，使用-i选项直接修改文件。sed是文本处理的重要工具，常用于批量替换配置文件中的参数。
+**98. sed**sed（流编辑器）用于对文本进行非交互式编辑，支持替换、删除、插入、打印等操作。基本语法：sed 's/old/new/g' file。常用命令：s（替换）、d（删除行）、a（追加）、i（插入）、p（打印）。sed 逐行处理文本，默认输出到标准输出，使用-i 选项直接修改文件。sed 是文本处理的重要工具，常用于批量替换配置文件中的参数。
 
-**99. awk**awk是一种模式扫描与处理语言，擅长格式化文本报告。基本语法：awk 'pattern \{action}' file。awk自动将每行分割为字段，$1、$2等表示第1、2个字段。例如，awk '\{print $1,$3}' file 打印每行的第1和第3列。awk支持变量、数组、算术运算、控制流，可以编写复杂的数据处理脚本。awk与grep、sed并称文本处理三剑客。
+**99. awk**awk 是一种模式扫描与处理语言，擅长格式化文本报告。基本语法：awk 'pattern \{action}' file。awk 自动将每行分割为字段，$1、$2等表示第 1、2 个字段。例如，awk '\{print $1,$3}' file 打印每行的第 1 和第 3 列。awk 支持变量、数组、算术运算、控制流，可以编写复杂的数据处理脚本。awk 与 grep、sed 并称文本处理三剑客。
 
-**100. 正则表达式**正则表达式是用于模式匹配的字符串规则，被grep、sed、awk、vim等工具支持。基本元字符：. 匹配任意字符，\* 匹配前一个字符零次或多次，^ 匹配行首，\$ 匹配行尾，\[] 匹配字符集，\ 转义。扩展正则（ERE）支持+、?、|、()等。正则表达式是文本处理的基石，掌握正则可以高效地搜索、替换和提取文本信息。
+**100. 正则表达式**正则表达式是用于模式匹配的字符串规则，被 grep、sed、awk、vim 等工具支持。基本元字符：. 匹配任意字符，\* 匹配前一个字符零次或多次，^ 匹配行首，\$ 匹配行尾，\[] 匹配字符集，\ 转义。扩展正则（ERE）支持+、?、|、() 等。正则表达式是文本处理的基石，掌握正则可以高效地搜索、替换和提取文本信息。
 
-**101. 脚本调试（set -x / -e / -u）**&#x53;hell脚本调试通过`bash -x script.sh`或脚本内`set -x`实现，显示每条命令及其参数（前面加+号）。`set -e`使脚本在遇到非零返回码时立即退出（防止错误蔓延），`set -u`将未定义变量视为错误并终止。`trap`命令可以捕获信号（如`EXIT`、`ERR`）执行清理操作。良好的调试习惯能快速定位脚本中的逻辑错误。
+**101. 脚本调试（set -x / -e / -u）**&#x53;hell 脚本调试通过`bash -x script.sh`或脚本内`set -x`实现，显示每条命令及其参数（前面加 + 号）。`set -e`使脚本在遇到非零返回码时立即退出（防止错误蔓延），`set -u`将未定义变量视为错误并终止。`trap`命令可以捕获信号（如`EXIT`、`ERR`）执行清理操作。良好的调试习惯能快速定位脚本中的逻辑错误。
 
-**102. printf**printf是比echo更强大的格式化输出命令，继承自C语言。它支持格式说明符（`%s`字符串、`%d`整数、`%f`浮点数）和转义序列（`\n`换行、`\t`制表符）。例如`printf "%-10s %5d\n" "Alice" 100`输出左对齐字符串和右对齐数字。在生成报表、填充表格时，printf是awk之外最精准的输出利器。
+**102. printf**printf 是比 echo 更强大的格式化输出命令，继承自 C 语言。它支持格式说明符（`%s`字符串、`%d`整数、`%f`浮点数）和转义序列（`\n`换行、`\t`制表符）。例如`printf "%-10s %5d\n" "Alice" 100`输出左对齐字符串和右对齐数字。在生成报表、填充表格时，printf 是 awk 之外最精准的输出利器。
 
-**103. 重定向与文件描述符**Linux中每个进程默认有三个文件描述符：0（标准输入）、1（标准输出）、2（标准错误）。重定向操作：`>`覆盖标准输出，`>>`追加，`2>`重定向标准错误，`&>`同时重定向两者。`2>&1`将标准错误合并到标准输出。高级技巧：`exec 3>file`创建自定义描述符，`read -u 3`读取。重定向是Shell脚本与文件交互最基础的机制。
+**103. 重定向与文件描述符**Linux 中每个进程默认有三个文件描述符：0（标准输入）、1（标准输出）、2（标准错误）。重定向操作：`>`覆盖标准输出，`>>`追加，`2>`重定向标准错误，`&>`同时重定向两者。`2>&1`将标准错误合并到标准输出。高级技巧：`exec 3>file`创建自定义描述符，`read -u 3`读取。重定向是 Shell 脚本与文件交互最基础的机制。
 
-**104. 进程替换（\<() / >()）**&#x8FDB;程替换是Bash的高级特性，允许将命令的输出作为文件参数传递给其他命令。`diff <(ls dir1) <(ls dir2)`比较两个目录的列表，而无需创建临时文件。`grep error <(tail -f app.log)`实时过滤日志。进程替换比管道更灵活，常用于对比、组合多个命令的输出流。
+**104. 进程替换（\<() / >()）**&#x8FDB;程替换是 Bash 的高级特性，允许将命令的输出作为文件参数传递给其他命令。`diff <(ls dir1) <(ls dir2)`比较两个目录的列表，而无需创建临时文件。`grep error <(tail -f app.log)`实时过滤日志。进程替换比管道更灵活，常用于对比、组合多个命令的输出流。
 
-**105. jq（JSON处理利器）**&#x968F;着API和微服务普及，JSON成为主流数据格式。`jq`是命令行下的JSON处理器：`curl -s api.example.com | jq '.data[0].id'`提取特定字段，`jq '. | map(select(.age > 18))'`过滤数组。jq支持复杂的切片、映射、拼接操作，是云原生架构中排查接口返回、处理Kubernetes资源清单的核心辅助工具。
+**105. jq（JSON 处理利器）**&#x968F;着 API 和微服务普及，JSON 成为主流数据格式。`jq`是命令行下的 JSON 处理器：`curl -s api.example.com | jq '.data[0].id'`提取特定字段，`jq '. | map(select(.age > 18))'`过滤数组。jq 支持复杂的切片、映射、拼接操作，是云原生架构中排查接口返回、处理 Kubernetes 资源清单的核心辅助工具。
 
-## 九、系统服务与日志（新增至10个）
+## 九、系统服务与日志（新增至 10 个）
 
-**106. systemd**systemd是Linux系统的服务管理器，取代了传统的SysV init。它使用单元（unit）文件管理服务、挂载点、套接字、定时器等。systemd支持并行启动、按需启动、依赖管理、自动重启等特性，显著加快系统启动速度。systemd还集成了日志系统（journald）、时间同步（timesyncd）、网络管理（networkd）等功能，成为现代Linux发行版的标准组件。
+**106. systemd**systemd 是 Linux 系统的服务管理器，取代了传统的 SysV init。它使用单元（unit）文件管理服务、挂载点、套接字、定时器等。systemd 支持并行启动、按需启动、依赖管理、自动重启等特性，显著加快系统启动速度。systemd 还集成了日志系统（journald）、时间同步（timesyncd）、网络管理（networkd）等功能，成为现代 Linux 发行版的标准组件。
 
-**107. systemctl**systemctl是systemd的控制命令，用于管理服务单元。常用操作：systemctl start nginx 启动服务；systemctl stop nginx 停止；systemctl restart nginx 重启；systemctl enable nginx 设置开机自启；systemctl status nginx 查看服务状态。systemctl还支持mask（屏蔽服务）、daemon-reload（重载配置）等高级功能。
+**107. systemctl**systemctl 是 systemd 的控制命令，用于管理服务单元。常用操作：systemctl start nginx 启动服务；systemctl stop nginx 停止；systemctl restart nginx 重启；systemctl enable nginx 设置开机自启；systemctl status nginx 查看服务状态。systemctl 还支持 mask（屏蔽服务）、daemon-reload（重载配置）等高级功能。
 
-**108. systemd Targets（运行目标）**&#x54;arget是systemd中一组单元的集合，用于定义系统的运行状态，类似于SysV的“运行级别”（Runlevel）。常见Target：`multi-user.target`（多用户命令行模式）、`graphical.target`（图形界面）、`rescue.target`（单用户维护模式）。通过`systemctl get-default`查看默认启动目标，`systemctl set-default multi-user.target`切换。Target之间存在依赖链，实现服务的分组启动控制。
+**108. systemd Targets（运行目标）**&#x54;arget 是 systemd 中一组单元的集合，用于定义系统的运行状态，类似于 SysV 的“运行级别”（Runlevel）。常见 Target：`multi-user.target`（多用户命令行模式）、`graphical.target`（图形界面）、`rescue.target`（单用户维护模式）。通过`systemctl get-default`查看默认启动目标，`systemctl set-default multi-user.target`切换。Target 之间存在依赖链，实现服务的分组启动控制。
 
-**109. journalctl**journalctl用于查询systemd日志（journald），支持按时间、服务、优先级等过滤。例如，journalctl -u nginx 查看nginx服务的日志；journalctl --since "1 hour ago" 查看最近一小时的日志；journalctl -f 实时跟踪新日志。journalctl将日志存储在二进制文件中，支持结构化查询，比传统文本日志更高效。
+**109. journalctl**journalctl 用于查询 systemd 日志（journald），支持按时间、服务、优先级等过滤。例如，journalctl -u nginx 查看 nginx 服务的日志；journalctl --since "1 hour ago" 查看最近一小时的日志；journalctl -f 实时跟踪新日志。journalctl 将日志存储在二进制文件中，支持结构化查询，比传统文本日志更高效。
 
-**110. cron**cron是Linux的定时任务调度器，通过crontab文件配置。crontab格式：分 时 日 月 周 命令。例如，0 2 \* \* \* /usr/bin/backup.sh 每天凌晨2点执行备份。cron服务（crond）每分钟检查一次crontab，执行到期的任务。用户可以使用crontab -e编辑自己的任务，root可以管理所有用户的任务。cron是系统自动化的基础，常用于日志轮转、数据备份、系统更新。
+**110. cron**cron 是 Linux 的定时任务调度器，通过 crontab 文件配置。crontab 格式：分 时 日 月 周 命令。例如，0 2 \* \* \* /usr/bin/backup.sh 每天凌晨 2 点执行备份。cron 服务（crond）每分钟检查一次 crontab，执行到期的任务。用户可以使用 crontab -e 编辑自己的任务，root 可以管理所有用户的任务。cron 是系统自动化的基础，常用于日志轮转、数据备份、系统更新。
 
-**111. systemd Timers（定时器）**&#x73;ystemd定时器是cron的现代替代方案，通过`.timer`单元和对应的`.service`单元配合工作。优势：精确到微秒、支持日历事件和单调计时、可设置依赖链、日志集成到journald。示例：`systemd-analyze calendar "*-*-* 02:00:00"`测试触发时间，`systemctl enable backup.timer`启用。在RHEL/CentOS 7+中，systemd定时器正逐步成为官方推荐的任务调度方式。
+**111. systemd Timers（定时器）**&#x73;ystemd 定时器是 cron 的现代替代方案，通过`.timer`单元和对应的`.service`单元配合工作。优势：精确到微秒、支持日历事件和单调计时、可设置依赖链、日志集成到 journald。示例：`systemd-analyze calendar "*-*-* 02:00:00"`测试触发时间，`systemctl enable backup.timer`启用。在 RHEL/CentOS 7+ 中，systemd 定时器正逐步成为官方推荐的任务调度方式。
 
-**112. logrotate**logrotate用于管理日志文件，防止日志无限增长占用磁盘空间。它根据配置自动轮转、压缩、删除旧日志。配置文件在/etc/logrotate.conf和/etc/logrotate.d/中。例如，/var/log/syslog \{ weekly rotate 4 compress } 表示每周轮转一次，保留4个备份，并压缩。logrotate通常由cron定时执行，是系统日志管理的重要工具。
+**112. logrotate**logrotate 用于管理日志文件，防止日志无限增长占用磁盘空间。它根据配置自动轮转、压缩、删除旧日志。配置文件在/etc/logrotate.conf 和/etc/logrotate.d/中。例如，/var/log/syslog \{ weekly rotate 4 compress } 表示每周轮转一次，保留 4 个备份，并压缩。logrotate 通常由 cron 定时执行，是系统日志管理的重要工具。
 
-**113. syslog/rsyslog**syslog是系统日志记录框架，rsyslog是其增强版，支持多源日志收集、过滤、转发。日志消息根据设施（facility）和优先级（priority）分类，写入/var/log/下的文件（如messages、auth.log）。rsyslog支持TCP/UDP传输、数据库存储、模板格式化等高级功能。日志是系统故障排查和安全审计的重要依据。
+**113. syslog/rsyslog**syslog 是系统日志记录框架，rsyslog 是其增强版，支持多源日志收集、过滤、转发。日志消息根据设施（facility）和优先级（priority）分类，写入/var/log/下的文件（如 messages、auth.log）。rsyslog 支持 TCP/UDP 传输、数据库存储、模板格式化等高级功能。日志是系统故障排查和安全审计的重要依据。
 
-**114. 服务单元文件（Service Unit）**&#x53;ystemd的服务单元文件（`.service`）位于`/etc/systemd/system/`或`/usr/lib/systemd/system/`，采用INI格式。核心段：`[Unit]`（描述、依赖）、`[Service]`（ExecStart、ExecStop、Restart、User）、`[Install]`（WantedBy）。编写自定义服务单元是将任何应用程序（如Python Web应用、Java Jar包）托管为系统守护进程的标准做法，便于统一管理和监控。
+**114. 服务单元文件（Service Unit）**&#x53;ystemd 的服务单元文件（`.service`）位于`/etc/systemd/system/`或`/usr/lib/systemd/system/`，采用 INI 格式。核心段：`[Unit]`（描述、依赖）、`[Service]`（ExecStart、ExecStop、Restart、User）、`[Install]`（WantedBy）。编写自定义服务单元是将任何应用程序（如 Python Web 应用、Java Jar 包）托管为系统守护进程的标准做法，便于统一管理和监控。
 
 **115. 系统启动时间分析（systemd-analyze）**`systemd-analyze`是分析系统启动性能的工具：`systemd-analyze time`显示内核和用户空间启动耗时；`systemd-analyze blame`按耗时的降序列出每个服务单元的启动时间；`systemd-analyze critical-chain`显示关键路径上的依赖链。此工具是排查服务器重启缓慢、优化启动速度的利器，能精准定位哪些服务拖慢了系统。
 
-## 十、软件包管理（新增至8个）
+## 十、软件包管理（新增至 8 个）
 
-**116. 包管理器**包管理器是自动化安装、更新、卸载软件的工具，解决软件依赖关系。Linux发行版通常使用两种包格式：Debian系（.deb）使用APT，Red Hat系（.rpm）使用YUM/DNF。包管理器从软件仓库（repository）下载预编译的二进制包，自动处理依赖，确保系统一致性。包管理器的出现大大简化了软件安装过程，是Linux生态繁荣的重要基础。
+**116. 包管理器**包管理器是自动化安装、更新、卸载软件的工具，解决软件依赖关系。Linux 发行版通常使用两种包格式：Debian 系（.deb）使用 APT，Red Hat 系（.rpm）使用 YUM/DNF。包管理器从软件仓库（repository）下载预编译的二进制包，自动处理依赖，确保系统一致性。包管理器的出现大大简化了软件安装过程，是 Linux 生态繁荣的重要基础。
 
-**117. APT**APT（Advanced Package Tool）是Debian/Ubuntu的包管理工具。常用命令：apt update 更新软件源列表；apt install package 安装包；apt remove package 卸载包；apt upgrade 升级所有可升级的包；apt search keyword 搜索包。APT自动处理依赖关系，并将包信息缓存到本地。现代APT还支持apt list、apt show等查询命令。
+**117. APT**APT（Advanced Package Tool）是 Debian/Ubuntu 的包管理工具。常用命令：apt update 更新软件源列表；apt install package 安装包；apt remove package 卸载包；apt upgrade 升级所有可升级的包；apt search keyword 搜索包。APT 自动处理依赖关系，并将包信息缓存到本地。现代 APT 还支持 apt list、apt show 等查询命令。
 
-**118. YUM/DNF**YUM（Yellowdog Updater Modified）和DNF（Dandified YUM）是Red Hat/CentOS/Fedora的包管理器。DNF是YUM的下一代，性能更好，依赖解析更准确。常用命令：dnf install package；dnf remove package；dnf update；dnf search keyword。DNF使用RPM作为底层包格式，支持插件扩展（如自动镜像选择、增量更新）。
+**118. YUM/DNF**YUM（Yellowdog Updater Modified）和 DNF（Dandified YUM）是 Red Hat/CentOS/Fedora的包管理器。DNF是YUM的下一代，性能更好，依赖解析更准确。常用命令：dnf install package；dnf remove package；dnf update；dnf search keyword。DNF 使用 RPM 作为底层包格式，支持插件扩展（如自动镜像选择、增量更新）。
 
-**119. RPM/DEB**RPM（Red Hat Package Manager）和DEB（Debian Package）是两种主流的软件包格式。RPM用于Red Hat系（CentOS、Fedora），DEB用于Debian系（Ubuntu、Debian）。包文件包含二进制程序、配置文件、文档和元数据（版本、依赖、描述）。直接使用rpm -ivh package.rpm或dpkg -i package.deb可以安装，但不处理依赖，因此通常通过包管理器使用。
+**119. RPM/DEB**RPM（Red Hat Package Manager）和 DEB（Debian Package）是两种主流的软件包格式。RPM 用于 Red Hat 系（CentOS、Fedora），DEB 用于 Debian 系（Ubuntu、Debian）。包文件包含二进制程序、配置文件、文档和元数据（版本、依赖、描述）。直接使用 rpm -ivh package.rpm 或 dpkg -i package.deb 可以安装，但不处理依赖，因此通常通过包管理器使用。
 
-**120. 仓库（Repository）**&#x8F6F;件仓库是存储预编译包的服务器，通过配置文件（如/etc/apt/sources.list）指定。仓库分为官方仓库（如Ubuntu的main、universe）和第三方仓库（如PPA、EPEL）。包管理器从仓库下载包并验证签名，确保软件来源可靠。添加第三方仓库可以获取官方未提供的软件，但需注意安全风险。仓库机制是Linux软件分发的主要方式。
+**120. 仓库（Repository）**&#x8F6F;件仓库是存储预编译包的服务器，通过配置文件（如/etc/apt/sources.list）指定。仓库分为官方仓库（如 Ubuntu 的 main、universe）和第三方仓库（如 PPA、EPEL）。包管理器从仓库下载包并验证签名，确保软件来源可靠。添加第三方仓库可以获取官方未提供的软件，但需注意安全风险。仓库机制是 Linux 软件分发的主要方式。
 
-**121. 模块流（AppStream）**&#x52;HEL/CentOS 8+引入了AppStream模块流机制，允许用户在同一发行版上选择不同版本的软件包（如PHP 7.4或PHP 8.0）。`dnf module list`查看可用模块，`dnf module enable php:8.0`启用特定流，`dnf install php`安装。模块流解决了传统RPM发行版“版本固定”的痛点，使企业级系统既能保持稳定内核，又能灵活使用新版应用软件。
+**121. 模块流（AppStream）**&#x52;HEL/CentOS 8+ 引入了 AppStream 模块流机制，允许用户在同一发行版上选择不同版本的软件包（如 PHP 7.4 或 PHP 8.0）。`dnf module list`查看可用模块，`dnf module enable php:8.0`启用特定流，`dnf install php`安装。模块流解决了传统 RPM 发行版“版本固定”的痛点，使企业级系统既能保持稳定内核，又能灵活使用新版应用软件。
 
-## 十一、安全与审计（新增至6个）
+## 十一、安全与审计（新增至 6 个）
 
-**122. 防火墙（Firewall）**&#x9632;火墙是监控和控制网络流量的安全系统，基于规则允许或拒绝数据包。Linux防火墙通过iptables/nftables实现，也可使用firewalld（动态防火墙管理工具）简化配置。防火墙规则可以基于IP地址、端口、协议、状态等条件。例如，firewall-cmd --add-service=http --permanent 开放HTTP服务。防火墙是系统安全的第一道防线。
+**122. 防火墙（Firewall）**&#x9632;火墙是监控和控制网络流量的安全系统，基于规则允许或拒绝数据包。Linux 防火墙通过 iptables/nftables 实现，也可使用 firewalld（动态防火墙管理工具）简化配置。防火墙规则可以基于 IP 地址、端口、协议、状态等条件。例如，firewall-cmd --add-service=http --permanent 开放 HTTP 服务。防火墙是系统安全的第一道防线。
 
-**123. fail2ban**fail2ban是入侵防御工具，通过监控日志文件（如/var/log/auth.log）检测多次认证失败，然后使用iptables临时封禁攻击IP。它支持多种服务（SSH、Apache、Postfix等），可自定义封禁时间和重试次数。fail2ban能有效防止暴力破解攻击，是服务器安全加固的常用工具。配置在/etc/fail2ban/jail.conf中。
+**123. fail2ban**fail2ban 是入侵防御工具，通过监控日志文件（如/var/log/auth.log）检测多次认证失败，然后使用 iptables 临时封禁攻击 IP。它支持多种服务（SSH、Apache、Postfix 等），可自定义封禁时间和重试次数。fail2ban 能有效防止暴力破解攻击，是服务器安全加固的常用工具。配置在/etc/fail2ban/jail.conf 中。
 
-**124. SELinux**SELinux（安全增强型Linux）是强制访问控制（MAC）机制，由美国国家安全局开发。它通过安全策略定义进程可以访问哪些文件、端口、资源，即使进程被攻破，也无法越权操作。SELinux有三种模式：Enforcing（强制）、Permissive（仅记录）、Disabled（禁用）。配置复杂，但能提供极高的安全性，常用于政府、军事等高安全环境。
+**124. SELinux**SELinux（安全增强型 Linux）是强制访问控制（MAC）机制，由美国国家安全局开发。它通过安全策略定义进程可以访问哪些文件、端口、资源，即使进程被攻破，也无法越权操作。SELinux 有三种模式：Enforcing（强制）、Permissive（仅记录）、Disabled（禁用）。配置复杂，但能提供极高的安全性，常用于政府、军事等高安全环境。
 
-**125. AppArmor**AppArmor是基于路径的强制访问控制，与SELinux互补。它通过配置文件（profile）限制程序可以访问的文件、网络、能力。例如，/usr/bin/evince的profile允许它读取PDF文件但禁止访问网络。AppArmor比SELinux更易配置，适合桌面和通用服务器。Ubuntu默认使用AppArmor，而CentOS使用SELinux。
+**125. AppArmor**AppArmor 是基于路径的强制访问控制，与 SELinux 互补。它通过配置文件（profile）限制程序可以访问的文件、网络、能力。例如，/usr/bin/evince 的 profile 允许它读取 PDF 文件但禁止访问网络。AppArmor 比 SELinux 更易配置，适合桌面和通用服务器。Ubuntu 默认使用 AppArmor，而 CentOS 使用 SELinux。
 
-**126. 审计（Audit）**&#x4C;inux审计系统（auditd）用于记录系统安全相关事件，如文件访问、系统调用、用户登录等。审计规则通过auditctl命令配置，日志写入/var/log/audit/audit.log。审计可以检测入侵行为、追踪用户操作、满足合规要求。例如，auditctl -w /etc/passwd -p wa -k passwd\_changes 监控passwd文件的写和属性修改。审计日志需定期审查，结合ausearch工具分析。
+**126. 审计（Audit）**&#x4C;inux 审计系统（auditd）用于记录系统安全相关事件，如文件访问、系统调用、用户登录等。审计规则通过 auditctl 命令配置，日志写入/var/log/audit/audit.log。审计可以检测入侵行为、追踪用户操作、满足合规要求。例如，auditctl -w /etc/passwd -p wa -k passwd\_changes 监控 passwd 文件的写和属性修改。审计日志需定期审查，结合 ausearch 工具分析。
 
-**127. 加密与哈希**Linux中密码存储使用SHA-512（影子文件），文件完整性校验常用`md5sum`、`sha256sum`。GPG（GNU Privacy Guard）用于非对称加密和签名验证，常用于软件包签名（如APT源验证）。OpenSSL是SSL/TLS协议的实现，提供对称/非对称加密、证书管理功能。在生产环境中，配置HTTPS、加密数据传输、校验软件包完整性均依赖这些工具。
+**127. 加密与哈希**Linux 中密码存储使用 SHA-512（影子文件），文件完整性校验常用`md5sum`、`sha256sum`。GPG（GNU Privacy Guard）用于非对称加密和签名验证，常用于软件包签名（如 APT 源验证）。OpenSSL 是 SSL/TLS 协议的实现，提供对称/非对称加密、证书管理功能。在生产环境中，配置 HTTPS、加密数据传输、校验软件包完整性均依赖这些工具。
 
-## 十二、容器化与云原生基石（全新章节，共6个）
+## 十二、容器化与云原生基石（全新章节，共 6 个）
 
-**128. OverlayFS（联合文件系统）**&#x4F;verlayFS是Linux内核原生的联合挂载文件系统，将多个目录（lowerdir、upperdir）合并成一个统一的视图。它是**Docker/Podman容器镜像分层存储**的底层技术：只读层作为lowerdir，容器可写层作为upperdir，写时复制（CoW）机制保证容器修改不影响镜像层。`docker inspect`查看GraphDriver即OverlayFS。理解OverlayFS是排查容器磁盘占用和文件丢失问题的基础。
+**128. OverlayFS（联合文件系统）**&#x4F;verlayFS 是 Linux 内核原生的联合挂载文件系统，将多个目录（lowerdir、upperdir）合并成一个统一的视图。它是**Docker/Podman容器镜像分层存储**的底层技术：只读层作为 lowerdir，容器可写层作为 upperdir，写时复制（CoW）机制保证容器修改不影响镜像层。`docker inspect`查看 GraphDriver 即 OverlayFS。理解 OverlayFS 是排查容器磁盘占用和文件丢失问题的基础。
 
-**129. 容器网络模型（CNI与veth）**&#x5BB9;器使用**veth pair**（虚拟以太网对）连接宿主机网络桥接（如docker0、cni0），一端在容器网络命名空间内，另一端在宿主机上。**CNI（容器网络接口）**&#x662F;容器运行时与网络插件交互的标准，实现IP分配、路由配置。常用插件包括bridge、macvlan、flannel、Calico。容器的网络隔离与通信本质上依赖Linux网桥、iptables/nftables规则和路由表转发。
+**129. 容器网络模型（CNI 与 veth）**&#x5BB9;器使用**veth pair**（虚拟以太网对）连接宿主机网络桥接（如 docker0、cni0），一端在容器网络命名空间内，另一端在宿主机上。**CNI（容器网络接口）**&#x662F;容器运行时与网络插件交互的标准，实现 IP 分配、路由配置。常用插件包括 bridge、macvlan、flannel、Calico。容器的网络隔离与通信本质上依赖 Linux 网桥、iptables/nftables 规则和路由表转发。
 
-**130. Podman（无守护进程容器引擎）**&#x50;odman是Red Hat主导的容器引擎，与Docker CLI完全兼容（可别名`alias docker=podman`）。最大区别是**无守护进程**（无dockerd），采用fork/exec模型，容器直接作为子进程运行，支持Rootless模式（非root用户运行容器），安全性更高。在RHEL/CentOS 8+中，Podman是默认容器工具，与systemd集成良好（通过`podman generate systemd`生成服务单元）。
+**130. Podman（无守护进程容器引擎）**&#x50;odman 是 Red Hat 主导的容器引擎，与 Docker CLI 完全兼容（可别名`alias docker=podman`）。最大区别是**无守护进程**（无 dockerd），采用 fork/exec 模型，容器直接作为子进程运行，支持 Rootless 模式（非 root 用户运行容器），安全性更高。在 RHEL/CentOS 8+ 中，Podman 是默认容器工具，与 systemd 集成良好（通过`podman generate systemd`生成服务单元）。
 
-**131. 容器运行时（runC与CRI-O）**`runC`是OCI（开放容器标准）的参考实现，负责创建和运行容器（底层调用namespaces和cgroups）。Docker和Podman都依赖runC。**CRI-O**是Kubernetes CRI（容器运行时接口）的轻量级实现，直接兼容OCI镜像，专为K8s设计，替代docker-shim。了解容器运行时的层级（CLI -> 守护进程/管理器 -> runC -> 内核），有助于诊断“容器无法启动”或“资源限制不生效”等深层次问题。
+**131. 容器运行时（runC 与 CRI-O）**`runC`是 OCI（开放容器标准）的参考实现，负责创建和运行容器（底层调用 namespaces 和 cgroups）。Docker 和 Podman 都依赖 runC。**CRI-O**是 Kubernetes CRI（容器运行时接口）的轻量级实现，直接兼容 OCI 镜像，专为 K8s 设计，替代 docker-shim。了解容器运行时的层级（CLI -> 守护进程/管理器 -> runC -> 内核），有助于诊断“容器无法启动”或“资源限制不生效”等深层次问题。
 
-**132. 容器镜像构建（Dockerfile与多阶段构建）**&#x44;ockerfile是定义容器镜像构建步骤的文本文件，核心指令包括`FROM`（基础镜像）、`RUN`（执行命令）、`COPY`/`ADD`（添加文件）、`EXPOSE`（声明端口）、`CMD`/`ENTRYPOINT`（启动命令）。**多阶段构建**允许在一个Dockerfile中使用多个`FROM`，将构建环境与运行环境分离，大幅缩减最终镜像体积（如将Golang编译环境与Alpine运行环境分离），是云原生微服务镜像瘦身的核心技巧。
+**132. 容器镜像构建（Dockerfile 与多阶段构建）**&#x44;ockerfile 是定义容器镜像构建步骤的文本文件，核心指令包括`FROM`（基础镜像）、`RUN`（执行命令）、`COPY`/`ADD`（添加文件）、`EXPOSE`（声明端口）、`CMD`/`ENTRYPOINT`（启动命令）。**多阶段构建**允许在一个 Dockerfile 中使用多个`FROM`，将构建环境与运行环境分离，大幅缩减最终镜像体积（如将 Golang 编译环境与 Alpine 运行环境分离），是云原生微服务镜像瘦身的核心技巧。
 
-**133. Kubernetes 基本概念（Pod、Service、Ingress）**&#x867D;然K8s是编排层，但底层依赖Linux内核特性。**Pod**是最小调度单元，包含一个或多个共享网络命名空间（同IP、同IPC）的容器；**Service**通过标签选择器提供稳定的ClusterIP和负载均衡；**Ingress**管理外部HTTP/HTTPS流量路由。理解Pod的网络共享（依赖容器间命名空间共享）和服务发现（依赖DNS和iptables/IPVS），能帮助运维精准定位服务连接超时、网络策略冲突等云原生故障。
+**133. Kubernetes 基本概念（Pod、Service、Ingress）**&#x867D;然 K8s 是编排层，但底层依赖 Linux 内核特性。**Pod**是最小调度单元，包含一个或多个共享网络命名空间（同 IP、同 IPC）的容器；**Service**通过标签选择器提供稳定的 ClusterIP 和负载均衡；**Ingress**管理外部 HTTP/HTTPS 流量路由。理解 Pod 的网络共享（依赖容器间命名空间共享）和服务发现（依赖 DNS 和 iptables/IPVS），能帮助运维精准定位服务连接超时、网络策略冲突等云原生故障。
 
 ### 总结与进阶建议
 
-以上 **133 个概念** 涵盖了从底层**内核机制（Cgroup/Namespace/OverlayFS）**、**企业存储（LVM/RAID/XFS/Btrfs）**、**系统调优（sysctl/swap）** 到**自动化管理（systemd/rsync/jq）** 以及**云原生基石（容器/K8s基础）** 的完整知识链路。
+以上 **133 个概念** 涵盖了从底层**内核机制（Cgroup/Namespace/OverlayFS）**、**企业存储（LVM/RAID/XFS/Btrfs）**、**系统调优（sysctl/swap）** 到**自动化管理（systemd/rsync/jq）** 以及**云原生基石（容器/K8s 基础）** 的完整知识链路。
 
 随着 2026 年技术演进，Linux 已不仅仅是一个操作系统，更是云原生、边缘计算和 AI 基础设施的底座。建议读者：
 
