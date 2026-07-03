@@ -1,7 +1,7 @@
 # Linux实战指南：从内核到容器
 
 > 摒弃过时老命令，基于 Linux 6.6 LTS / Ubuntu 24.04 / RHEL 9 编写，面向现代云原生环境的 Linux 实操手册。
-> 12章核心内容 + 附录A（Shell脚本生产实战），涵盖系统基础、文件系统、权限模型、进程管理、网络、systemd、性能调优、日志、安全审计、容器化。
+> 12 章核心内容 + 第 13 章（Linux 6.x+ 内核前沿特性）+ 附录 A（Shell 脚本实战）/B（故障排查速查表）/C（命令速查表）/D（概念索引），涵盖系统基础、文件系统、权限模型、进程管理、网络、systemd、性能调优、日志、安全审计、容器化与内核新特性。
 
 ---
 
@@ -783,6 +783,7 @@ systemctl_redirect ...                  # 最终调用systemctl
 | 引入时间 | 2007 | 2016（Linux 4.5+） |
 | 控制器 | 每个资源独立子系统 | 统一层级树 |
 | 容器支持 | 可用但有限 | **推荐**（Docker 20.10+/Podman默认） |
+| 优势 | 兼容老系统 | 简单一致，资源控制更精准 |
 
 > ⚠️ **cgroups v2 兼容性注意**：现代发行版（RHEL 9, Ubuntu 22.04+）已全面默认使用 cgroups v2（统一层级树，解决 v1 嵌套冲突）。关键在于 cgroup 驱动配置——Docker 默认 cgroup 驱动为 `cgroupfs`，但 systemd 期望使用 `systemd` 驱动。驱动不匹配会导致资源限制不生效或容器启动失败。
 > 
@@ -794,7 +795,6 @@ systemctl_redirect ...                  # 最终调用systemctl
 > }
 > ```
 > 或直接使用 Podman（天生兼容 cgroups v2 + systemd）。
-| 优势 | 兼容老系统 | 简单一致，资源控制更精准 |
 
 ```bash
 # 查看系统用的是哪个版本
@@ -1277,6 +1277,42 @@ $ man proc                    # /proc详解
 > **本章字数**：约 18,500 字
 > **涉及命令**：uname, ps, free, lsblk, strace, sudo, systemctl, sysctl, dracut, update-initramfs
 > **内核版本基准**：Linux 6.6 LTS (2024年) + 6.10/6.12 进展
+
+---
+
+## 课后练习
+
+1. 概念题：SSH 配置中 PermitRootLogin no 和 PasswordAuthentication no 分别防御什么攻击？
+
+思路：PermitRootLogin no 防止直接暴力破解 root 密码（攻击者不知道用户名，只能盲猜）；PasswordAuthentication no 强制使用密钥，彻底防御密码爆破。
+
+2. 排障题：修改 /etc/ssh/sshd_config 后重启 SSH 失败，如何快速定位语法错误？
+
+思路：sudo sshd -t（测试模式），它会指出错误行号和具体原因。修复后再 systemctl restart sshd。
+
+3. 实操题：使用 auditd 添加一条规则，监控 /etc/sudoers 文件的写入（w）和属性修改（a）操作，并打上标签 sudoers_change。
+
+思路：sudo auditctl -w /etc/sudoers -p wa -k sudoers_change。永久生效需写入 /etc/audit/rules.d/ 下的 .rules 文件。
+
+4. 安全题：SELinux 处于 Enforcing 模式，Nginx 无法写入 /var/www/uploads，ausearch -m avc 显示 denied { write }。请给出两种解决方法。
+
+思路：1. 改标签：chcon -t httpd_sys_rw_content_t /var/www/uploads -R；2. 改布尔值：setsebool -P httpd_unified on（或特定布尔值）。最佳实践是改标签并 restorecon。
+
+5. 对比题：SELinux 和 AppArmor 在策略定义方式上的根本区别是什么？
+
+思路：SELinux 是类型强制（TE）基于 inode 标签，任何文件都有安全上下文；AppArmor 是路径强制，基于程序配置文件允许访问的路径。AppArmor 更简单，SELinux 更精细。
+
+6. 实操题：写一条 Docker 运行命令，要求容器：只读根文件系统、丢弃所有 Capabilities、仅添加 NET_BIND_SERVICE、禁止提权。
+
+思路：docker run --read-only --cap-drop=ALL --cap-add=NET_BIND_SERVICE --security-opt no-new-privileges:true myapp。
+
+7. 排障题：fail2ban 没有封禁任何 IP，但 journalctl -u fail2ban 显示 WARNING 'sshd' not found in 'systemd-journal'。问题出在哪？
+
+思路：fail2ban 的 backend 配置不对。默认 backend=auto 可能选了 pyinotify。应在 /etc/fail2ban/jail.local 中显式设置 backend = systemd 以读取 journald。
+
+8. 综合题：容器中运行 ping 8.8.8.8 报错 Operation not permitted，但宿主机可以。如何在不给容器 --privileged 的情况下修复？
+
+思路：ping 需要 CAP_NET_RAW。启动时添加 --cap-add=NET_RAW 即可。更优雅的做法是不用 ping，用 curl 或 nc 测试连通性。
 # 第二章：文件系统与目录结构
 
 > **本章定位**：Linux的"一切皆文件"哲学不是口号，而是从根目录到设备节点的统一设计。理解文件系统层次、inode机制、链接原理、挂载流程，你就掌握了Linux存储系统的完整图谱。
@@ -3015,6 +3051,53 @@ $ lsblk                     # 8. 磁盘拓扑
 > **本章字数**：约 19,000 字
 > **涉及命令**：stat, ln, lsblk, mount, mkfs, blkid, tune2fs, mdadm, pvcreate, vgcreate, lvcreate, resize2fs
 > **基准版本**：Linux 6.6 LTS, Btrfs 6.7, xfsprogs 6.5
+
+---
+
+## 课后练习
+
+1. 概念题：容器的隔离依赖 Linux 内核的哪两大特性？分别负责什么？
+
+思路：命名空间 (Namespace) 负责“隔离”（看不同的 PID、网络、挂载点等）；Cgroups 负责“限制”（控制 CPU、内存、磁盘 IO 配额）。
+
+2. 排障题：Docker 容器内 top 看到 CPU 使用率，但宿主机 top 看到容器进程占满 2 个核。为什么容器内显示的数字可能和宿主机不一致？
+
+思路：Docker 默认容器内的 top 读取的是容器的 Cgroup 限制（如果没限制则看主机全部核心），而宿主机 top 是物理真实消耗。如果容器内存限制小于物理内存，free -m 显示也可能不一致。
+
+3. 实操题：写出 Dockerfile，使用多阶段构建，将一个 Go 程序编译成静态二进制，并最终放入 scratch 空镜像中运行。
+
+思路：
+
+```dockerfile
+FROM golang:1.21 AS builder
+WORKDIR /app
+COPY . .
+RUN CGO_ENABLED=0 go build -o server .
+FROM scratch
+COPY --from=builder /app/server /server
+EXPOSE 8080
+CMD ["/server"]
+```
+
+4. 对比题：Docker 的 bridge 网络模式和 host 网络模式，在性能和端口管理上有什么优缺点？
+
+思路：bridge 有 NAT 和端口映射开销（docker-proxy），但支持端口复用（宿主机 8080 映射容器 80）。host 无 NAT，性能最高，但容器直接占用宿主机端口，易冲突。
+
+5. 存储题：docker volume create 创建的数据卷和 bind mount（-v /host/path:/container/path）在管理方式上有何不同？
+
+思路：Volume 由 Docker 管理（存储在 /var/lib/docker/volumes/），可通过 docker volume 命令生命周期管理，适合生产数据；Bind mount 直接映射宿主机目录，依赖宿主机文件系统布局，适合开发调试。
+
+6. 实战题：启动一个 Podman 容器，要求以非 root 用户（nobody）运行，并挂载宿主机的 /data 为只读。
+
+思路：podman run --user 65534 -v /data:/data:ro --rm alpine ls /data。注意 rootless 模式下挂载宿主机目录可能需要额外配置用户命名空间映射。
+
+7. 网络题：Docker 容器访问宿主机上的 MySQL（宿主机 IP 是 192.168.1.10，端口 3306），容器内应连接什么地址？
+
+思路：对于 Docker，Linux 容器可连接 172.17.0.1（docker0 网桥的网关）或宿主机实际 IP。Mac/Windows 下需连接 host.docker.internal。最佳实践是不直接用 IP，用容器名称或服务发现。
+
+8. 综合题：如何查看一个运行中容器的 overlay2 存储层在宿主机上的具体路径？
+
+思路：docker inspect <container_id> | jq '.[0].GraphDriver.Data.UpperDir'。这将显示该容器可写层的绝对路径。
 # 第三章：文件操作与权限
 
 > **本章定位**：Linux的权限模型是安全架构的基石。从`rwx`到ACL，从setuid到Linux Capabilities，理解这些才能真正掌控"谁能对什么做什么"。
@@ -4426,6 +4509,30 @@ $ find / -perm 0777 -type d 2>/dev/null
 > **本章字数**：约 18,500 字
 > **涉及命令**：chmod, chown, chgrp, umask, setfacl, getfacl, chattr, lsattr, setcap, getcap, find, xargs, sort, uniq
 > **基准版本**：Linux 6.6 LTS, libcap 2.69, acl 2.3.1
+
+---
+
+## 课后练习
+
+1. 概念题：执行 `chmod 2755 /shared` 后，权限中的数字 `2` 代表什么？为什么团队共享目录常被设为 `2770`？
+
+思路：`2` 是 setgid（SGID）位。目录设置 SGID 后，其下新建的子文件/子目录会自动继承该目录的属组，而非创建者的主组。共享目录用 `2770` 可确保成员新建的文件都属于共享组，避免因属组错配导致互相无法访问。
+
+2. 实操题：当 `umask=022` 时，新建普通文件和目录的默认权限分别是多少？若希望新建文件默认权限为 `640`，应把 umask 设为多少？
+
+思路：文件默认权限 = `666 & ~umask`，目录 = `777 & ~umask`。umask=022 时，文件为 `644`（rw-r--r--），目录为 `755`（rwxr-xr-x）。要使新文件为 `640`（rw-r-----），需要 `umask=026`（666 & ~026 = 640）。
+
+3. 排障题：用户反馈"明明在 `dev` 组里，却无法读写 `/data/project`"。`ls -ld /data/project` 显示 `drwxrws--- root dev`。请列出至少 3 种可能原因，并说明如何用 `getfacl` 排查。
+
+思路：①存在 ACL 条目压缩了组的有效权限——`getfacl /data/project` 看 `mask` 与 `group:dev` 的实际值；②用户登录会话未刷新组归属，`id` 查看是否真有 dev 组，必要时重新登录或 `newgrp dev`；③SELinux/AppArmor 策略拦截（`ls -Z`、`ausearch -m avc`、`dmesg | grep -i denied`）；④目录被加了不可变等属性（`lsattr /data/project`）。
+
+4. 安全题：用 `chattr +i /etc/passwd` 能否真正防御勒索病毒篡改？它有哪些副作用？如何验证与解除？
+
+思路：`+i`（immutable 位）会让文件对所有人（含 root）变为只读，无法删除、改名、追加或修改，对关键配置确有一定防篡改效果。但副作用明显：连 root 也无法正常写入，会导致 `useradd` 等工具失败；而且多数勒索以普通用户权限加密用户数据（如 `/home`），保护 `/etc/passwd` 并不能挡住对用户文件的破坏。验证：`lsattr /etc/passwd` 看到 `i`；解除：`chattr -i /etc/passwd`。
+
+5. 实操题：用一条命令查找 `/var/log` 下所有大于 100MB、修改时间超过 30 天的 `.log` 文件，并用 `xargs` 配合 `gzip` 压缩（要求正确处理文件名带空格的情况）。
+
+思路：`find /var/log -type f -name '*.log' -size +100M -mtime +30 -print0 | xargs -0 gzip`。`-print0` 与 `xargs -0` 配合，以 NUL 分隔文件名，可安全处理含空格或特殊字符的路径。
 # 第四章：进程与作业管理
 
 > **本章定位**：进程是Linux运行的实体。理解进程的生命周期、父子关系、状态转换，掌握ps/top/htop/kill的实战用法，你就从"会用Linux"升级为"懂Linux运行机制"。
@@ -5759,6 +5866,42 @@ $ ps -eo pid,ppid,stat,cmd | awk '$3~/Z/'
 > **本章字数**：约 18,800 字
 > **涉及命令**：ps, top, htop, btop, kill, killall, pkill, pgrep, nice, renice, nohup, tmux, screen
 > **基准版本**：procps-ng 4.0, tmux 3.4, htop 3.3, btop 1.4
+
+---
+
+## 课后练习
+
+1. 概念题：什么是僵尸进程？僵尸进程占用 CPU 和内存吗？
+
+思路：僵尸进程是已终止但父进程未调用 wait() 回收的进程。它不占用 CPU 和内存（内存已释放），仅占用进程表中的 PID 资源。
+
+2. 排障题：系统出现大量僵尸进程，父进程 PID 为 1234。除了重启父进程，还有什么优雅的方法让父进程回收这些僵尸进程？
+
+思路：向父进程发送 SIGCHLD 信号：kill -SIGCHLD 1234。如果父进程正确捕获该信号并执行 waitpid()，即可回收。
+
+3. 实操题：一个任务在前台运行卡住了（Ctrl+C 无效），你想把它放到后台并暂停，再强制终止它，该怎么做？
+
+思路：Ctrl+Z 暂停当前前台任务 → bg %1 放到后台 → kill %1（或 kill -9 %1）。如果 Ctrl+Z 无效，只能另开终端用 kill -9 <PID>。
+
+4. 对比题：command &、nohup command &、tmux 三者哪个能保证关闭 SSH 终端后任务依然运行且输出可查看？
+
+思路：& 关终端会挂（除非用 disown）。nohup 可以免疫 SIGHUP 并保留输出到 nohup.out，但重连后无法交互。tmux 最完美，重连后直接看到现场。
+
+5. 信号题：kill -15 <PID> 和 kill -9 <PID> 的区别是什么？生产环境优先用哪个？
+
+思路：-15 是 SIGTERM（优雅终止），进程可捕获并执行清理逻辑；-9 是 SIGKILL（强制内核级终止），进程无法捕获。优先用 -15，-9 是最后的杀手锏（防止数据损坏）。
+
+6. 调优题：一个耗时的数据备份脚本在运行，导致前端 Web 响应变慢。如何在不杀进程的情况下降低其 CPU 资源抢占优先级？
+
+思路：用 renice 调高其 nice 值。sudo renice -n 19 -p <PID>（nice 值越高，优先级越低）。
+
+7. 监控题：系统平均负载（load average）长期高于 CPU 核心数，但 top 看到的 CPU 使用率只有 20%。最可能的原因是什么？
+
+思路：高 I/O 等待（磁盘瓶颈）。大量进程处于不可中断睡眠（D 状态）等待磁盘读写。执行 iostat -x 1 查看 %util 和 await 即可验证。
+
+8. 实战题：如何在 tmux 中创建一个名为 train 的会话，在后台运行 AI 训练脚本，然后安全地断开连接？
+
+思路：tmux new -s train → 执行 python train.py → 按 Ctrl+B 再按 D 脱离。重连时 tmux attach -t train。
 # 第五章：网络基础与配置
 
 > **本章定位**：网络是Linux服务器的命脉。从IP子网到TCP握手，从ss/netstat到防火墙规则，本章覆盖运维必须掌握的网络诊断和配置技能。
@@ -6568,6 +6711,53 @@ $ sudo ip link del br0
 
 > **本章字数**：约 11,000 字
 > **涉及命令**：ip, ss, netstat, dig, curl, wget, ping, traceroute, mtr, iptables, nftables
+
+---
+
+## 课后练习
+
+1. 概念题：/24 子网掩码的十进制表示是什么？该子网最多容纳多少台有效主机？
+
+思路：255.255.255.0，有效主机数为 2^(32-24) - 2 = 254 个。
+
+2. 排障题：ping 8.8.8.8 能通，但 ping www.baidu.com 显示 Temporary failure in name resolution。你的排查步骤是什么？
+
+思路：DNS 问题。先 cat /etc/resolv.conf 看 nameserver（可能是 127.0.0.53），再 nslookup baidu.com 8.8.8.8 测外网 DNS，最后检查 systemd-resolved 状态：resolvectl status。
+
+3. 实操题：查看系统当前所有监听的 TCP 端口，并显示对应的进程名，请写出 ss 命令。
+
+思路：ss -tlnp（-t TCP，-l 监听，-n 不解析服务名，-p 显示进程）。netstat -tulnp 也行但已淘汰。
+
+4. 抓包题：想抓取 eth0 网卡上源 IP 为 192.168.1.100 且目标端口为 80 的 TCP 包，并保存为 web.pcap，请写出 tcpdump 命令。
+
+思路：sudo tcpdump -i eth0 -nn 'src host 192.168.1.100 and tcp dst port 80' -w web.pcap。
+
+5. 配置题：Ubuntu 24.04 使用 Netplan，请写出将 eth0 配置为静态 IP 10.0.0.10/24，网关 10.0.0.1，DNS 8.8.8.8 的 YAML 配置。
+
+思路：
+
+```yaml
+network:
+  ethernets:
+    eth0:
+      dhcp4: no
+      addresses: [10.0.0.10/24]
+      routes: [{ to: default, via: 10.0.0.1 }]
+      nameservers: { addresses: [8.8.8.8] }
+  version: 2
+```
+
+6. 安全题：为了防止 SSH 暴力破解，请写出两条 nftables 规则：一条放行已建立连接，一条限制 SSH 端口（2222）的新连接频率。
+
+思路：nft add rule inet filter input ct state established,related accept；nft add rule inet filter input tcp dport 2222 meter ssh-limit { ip saddr limit rate 10/minute } accept（配合 drop 策略）。
+
+7. 排障题：curl -v https://example.com 卡在 TLS handshake，ping 通 IP 但延迟较高。可能的原因是什么？
+
+思路：可能是 MTU 问题（PMTUD 黑洞）导致 TLS 握手大包被丢弃。尝试 ping -M do -s 1472 <IP> 测试是否分片被禁止，或检查防火墙是否放行了 ICMP need-frag 包。
+
+8. 对比题：ss 和 netstat 获取连接状态信息的原理有何不同？为何现代推荐用 ss？
+
+思路：netstat 遍历 /proc/net/（慢，文件系统开销）；ss 直接通过 netlink 内核接口读取（快，开销小）。
 # 第六章：用户与组管理
 
 > **本章定位**：用户和组是多用户系统的基石。从创建用户到PAM认证，从密码策略到sudo权限，本章覆盖系统管理员最核心的日常工作。
@@ -6989,6 +7179,49 @@ $ sudo awk -F: '{print $3}' /etc/passwd | sort -n | uniq -d
 
 > **本章字数**：约 8,500 字
 > **涉及命令**：useradd, usermod, userdel, passwd, chage, groupadd, id, getent
+
+---
+
+## 课后练习
+
+1. 概念题：/etc/passwd 和 /etc/shadow 文件权限分别是什么？为什么 /etc/shadow 只能 root 读取？
+
+思路：/etc/passwd 是 644，/etc/shadow 是 640（属 root 组 shadow）。因为 shadow 存储加密密码哈希和过期策略，泄露后极易被暴力破解。
+
+2. 实操题：创建一个无法交互登录的系统服务用户 myapp，指定家目录为 /opt/myapp，Shell 设为 /usr/sbin/nologin。
+
+思路：sudo useradd -r -d /opt/myapp -s /usr/sbin/nologin myapp（-r 创建系统用户 UID<1000）。
+
+3. 安全题：新入职员工 bob 需要加入 docker 和 dev 组，但不能覆盖其原有的附加组，如何操作？
+
+思路：sudo usermod -aG docker,dev bob（必须加 -a，否则覆盖）。
+
+4. 策略题：公司要求所有普通用户密码必须 90 天修改一次，提前 7 天提醒。请写出对用户 alice 设置此策略的 chage 命令。
+
+思路：sudo chage -M 90 -W 7 alice。
+
+5. 排障题：sudo -l 显示 User alice is not allowed to run sudo on host，但 alice 明确在 sudo 组里。哪里可能出问题了？
+
+思路：sudo 的权限由 /etc/sudoers 决定，通常使用 %sudo ALL=(ALL:ALL) ALL。检查组名是否确实是 sudo（有些是 wheel）。或者 sudo 的 PAM 配置（/etc/pam.d/sudo）限制了一致性。
+
+6. 对比题：主组（Primary Group）和附加组（Supplementary Group）在文件创建时的权限继承上有何区别？
+
+思路：用户创建文件时，默认所属组是主组；附加组只用于判断访问权限，不会成为新文件的默认组（除非父目录有 setgid 位）。
+
+7. 实操题：批量锁定所有一个月内未登录的普通用户（lastlog 日志显示 **Never logged in**）。
+
+思路：lastlog -t 30 列出最近 30 天未登录的，结合 awk 提取用户名，usermod -L 锁定。注意筛选 $3>=1000 避免锁定系统用户。
+
+8. 综合题：如何配置 PAM（/etc/security/limits.conf）限制 www-data 用户的最大进程数为 100，最大打开文件数为 65535？
+
+思路：
+
+```
+www-data soft nproc 100
+www-data hard nproc 100
+www-data soft nofile 65535
+www-data hard nofile 65535
+```
 # 第七章：服务管理与systemd（增强版）
 
 > **本章定位**：systemd是现代Linux的服务管理器，理解Unit文件编写、依赖解析、资源限制和journalctl是运维基本功。本章从"会用systemctl"升级到"精通systemd架构"。
@@ -7889,6 +8122,54 @@ echo -e "\n=== 审计完成 ==="
 ---
 
 > **本章字数**：约 5,500 字
+
+---
+
+## 课后练习
+
+1. 概念题：systemd 中 Wants 和 Requires 依赖指令的核心区别是什么？
+
+思路：Requires 是强依赖，依赖服务启动失败，本服务也启动失败；Wants 是弱依赖/愿望，依赖服务启动失败不影响本服务。
+
+2. 实操题：写一个 myapp.service 单元文件，使服务在 network.target 之后启动，使用用户 myapp 执行，异常退出时自动重启，并限制内存最大 1GB。
+
+思路：
+
+```
+[Unit]
+After=network.target
+[Service]
+User=myapp
+ExecStart=/opt/myapp/bin/server
+Restart=on-failure
+MemoryMax=1G
+[Install]
+WantedBy=multi-user.target
+```
+
+3. 日志题：查看 nginx 服务今天上午 10 点到 11 点之间所有 error 级别以上的日志，写出 journalctl 命令。
+
+思路：journalctl -u nginx --since "2026-07-03 10:00" --until "2026-07-03 11:00" -p err。
+
+4. 排障题：systemctl start nginx 卡住不动（一直处于 activating），过了很久才超时失败。你会如何排查？
+
+思路：systemctl status nginx 看进程 PID，然后 strace -p <PID> 看卡在哪个系统调用（如 connect 卡数据库，或 fork 卡资源）。检查 Unit 文件的 Type 是否正确（如果是 forking 但父进程没退出就会卡）。
+
+5. 对比题：systemd timer 相比传统的 cron 有哪些核心优势？
+
+思路：支持单调定时器（开机后多久执行）、支持随机延迟（防惊群）、集成 journald 日志、支持依赖和资源限制（Cgroups）、支持丢失后补偿执行（Persistent=true）。
+
+6. 实操题：创建一个每天凌晨 3 点执行 /usr/local/bin/backup.sh 的 timer，并配置在错过后开机立即补执行。
+
+思路：写 backup.service（Type=oneshot）和 backup.timer。Timer 中设置 OnCalendar=*-*-* 03:00:00 和 Persistent=true，然后 systemctl enable backup.timer。
+
+7. 安全题：如何在 systemd 服务中配置 NoNewPrivileges=true 和 PrivateTmp=true，分别起什么安全作用？
+
+思路：NoNewPrivileges 阻止进程通过 setuid 或 capabilities 提权；PrivateTmp 给服务分配独立的 /tmp 命名空间，防止临时文件信息泄露或冲突。
+
+8. 综合题：systemd-analyze blame 显示 network-online.target 耗时很长，但业务应用不需要等待网络完全就绪。如何优化启动速度？
+
+思路：修改应用服务的 Unit 文件，将 After=network-online.target 改为 After=network.target（network.target 不等待网络就绪，启动更快），并去掉 Wants=network-online.target。
 # 第八章：性能监控与调优（增强版）
 
 > **本章定位**：从top到eBPF，从iostat到io_uring，本章覆盖2024-2026年Linux性能监控的完整工具链和调优方法论。
@@ -8328,6 +8609,47 @@ echo "TOP_MEM: $(ps -eo pmem,cmd --sort=-pmem --no-headers | head -1)"
 ---
 
 > **本章字数**：约 3,000 字
+
+---
+
+## 课后练习
+
+1. 概念题：top 中的 load average 为 8.00 4.00 2.00，服务器是 4 核 CPU。这代表系统过去 1 分钟、5 分钟、15 分钟的负载状况如何？
+
+思路：1 分钟负载 8 远超 4 核（严重过载），5 分钟 4（刚好满载），15 分钟 2（空闲）。说明系统在最近 1 分钟突然涌入大量任务，可能是突发的请求高峰或定时任务。
+
+2. 实操题：定位 CPU 用户态（%us）占用最高的函数热点，请写出 perf 的实时监控命令。
+
+思路：sudo perf top -g（-g 显示调用链）。如果是追踪特定进程：sudo perf top -p <PID>。
+
+3. 排障题：free -h 显示 available 只有 100MB，但 buff/cache 占了 20GB。系统是否内存不足？
+
+思路：是。available 是应用真正可用的内存（含可回收的 cache），如果 available 过低且 swap 开始使用（si/so > 0），说明内存紧张。需要排查 ps aux --sort=-%mem 找内存泄漏进程。
+
+4. 监控题：磁盘 I/O 延迟高，iostat -x 1 中主要看哪两列来判断磁盘是否瓶颈？正常 SSD 的 await 应小于多少？
+
+思路：看 %util（设备繁忙度，接近 100% 说明饱和）和 await（平均 I/O 响应时间）。普通 SATA SSD 的 await 应在 1-5ms 以内，超过 20ms 说明严重瓶颈。
+
+5. 调优题：写一个生产环境适用的 sysctl 配置片段，开启 TCP BBR 拥塞控制。
+
+思路：
+
+```
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+```
+
+6. 安全题：如何在容器或非 root 环境下使用 eBPF 追踪程序？需要哪些 capabilities？
+
+思路：需要 CAP_BPF（Linux 5.8+）和 CAP_SYS_ADMIN，或者 CAP_PERFMON + CAP_BPF。在 Docker 中需添加 --cap-add BPF --cap-add SYS_ADMIN（或 --privileged）。
+
+7. 实操题：使用 bpftrace 一行命令追踪系统中所有执行 execve 系统调用的进程，并打印其命令行。
+
+思路：sudo bpftrace -e 'tracepoint:syscalls:sys_enter_execve { printf("%s executed %s\n", comm, str(args->filename)); }'。
+
+8. 综合题：某应用 RSS 内存持续缓慢增长，怀疑内存泄漏。请给出利用 pmap 或 smem 定位泄漏方向的思路。
+
+思路：pmap -x <PID> | sort -k3 -rn | head -20 查看哪些内存段（heap 或匿名映射）占用最大且持续增长。如果是 heap 增长，结合 valgrind 或 heaptrack 分析；如果是 mmap 映射文件未释放，检查代码中的文件流关闭逻辑。
 # 第九章：日志管理与定时任务
 
 > **本章定位**：日志是故障排查的"黑匣子"，定时任务是自动化的"心脏"。本章从rsyslog的传统架构讲到journald的现代设计，从crontab的暗坑讲到systemd timer的精准调度，覆盖生产环境的全链路日志与定时任务管理。
@@ -9249,6 +9571,55 @@ $ crontab -l | grep -E 'PATH|SHELL'     # 显式设置环境
 $ systemctl list-timers --failed        # 无失败timer
 > 本章扩充后字数：约 12,000 字
 > 涉及命令：journalctl, rsyslogd, logrotate, crontab, systemctl, logger, lsof, flock
+
+---
+
+## 课后练习
+
+1. 概念题：journald 的日志默认存储在 /run/log/journal/（内存）还是 /var/log/journal/（磁盘）？如何永久切换到磁盘持久化？
+
+思路：默认是 auto（存内存）。创建 /var/log/journal/ 目录并设置正确权限（systemd-tmpfiles --create --prefix /var/log/journal），然后重启 systemd-journald 即可。
+
+2. 排障题：logrotate 执行后，Nginx 日志文件 access.log 变成了 0 字节，但磁盘空间依然没释放。为什么？
+
+思路：Nginx 主进程仍然持有旧文件的文件描述符（fd）没释放。logrotate 的 postrotate 脚本需要向 Nginx 发送 USR1 信号（或 nginx -s reopen）使其重新打开日志文件。检查 postrotate 是否执行成功。
+
+3. 实操题：编写一个 logrotate 配置，使 /var/log/myapp/*.log 每天轮转，保留 7 天，压缩，并在轮转后重启 myapp.service。
+
+思路：
+
+```
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    sharedscripts
+    postrotate
+        systemctl reload myapp.service > /dev/null 2>&1 || true
+    endscript
+}
+```
+
+4. 对比题：cron 和 systemd timer 在执行环境（环境变量）上有什么巨大差异？
+
+思路：cron 的环境极度干净（仅有 /usr/bin:/bin，PATH 很短，SHELL 是 /bin/sh），所以脚本中需显式 source ~/.bashrc 或写绝对路径；systemd timer 继承 systemd 环境（可配置 Environment=），更可控。
+
+5. 排障题：Cron 定时任务明明在 crontab -l 里，但就是没执行。列出 3 种可能的原因。
+
+思路：1. Cron 服务没启动（systemctl status cron）；2. 脚本没有执行权限；3. 脚本依赖的 PATH 在 cron 环境下找不到（需写绝对路径）；4. 输出未重定向导致邮件队列堵塞但没提醒。
+
+6. 实操题：使用 systemd timer 实现一个每隔 5 分钟执行一次的健康检查脚本，要求即使系统在预定时间关机，下次开机也要补执行一次。
+
+思路：Timer 配置 OnUnitActiveSec=5min（上次执行后 5 分钟）和 Persistent=true。
+
+7. 安全题：如何通过配置 journald 限制日志总大小不超过 2GB，防止日志撑爆磁盘？
+
+思路：在 /etc/systemd/journald.conf 中设置 SystemMaxUse=2G，然后 systemctl restart systemd-journald。也可以 journalctl --vacuum-size=2G 手动清理。
+
+8. 综合题：如何用 logger 命令向 journald 发送一条 user 设施、warning 级别的消息，标签为 my-deploy？
+
+思路：logger -t my-deploy -p user.warning "Deployment failed: disk full"。查询时用 journalctl -t my-deploy -p warning。
 # 第十章：软件包管理
 
 > **本章定位**：软件包管理是系统稳定性的基石。从 apt/dnf 的日常操作到仓库签名验证，从版本锁定到热修补，本章覆盖生产环境软件包管理的全生命周期。
@@ -9729,6 +10100,42 @@ dpkg -l | grep -E '^..(F|H)' | wc -l
 ---
 
 > **本章字数**：约 8,500 字
+
+---
+
+## 课后练习
+
+1. 概念题：Debian 系的 .deb 包和 Red Hat 系的 .rpm 包，在依赖解决方面，包管理器（APT/DNF）分别起到什么作用？
+
+思路：APT 和 DNF 都会从仓库读取元数据并自动计算依赖树。它们不仅能安装，还能处理版本冲突和提供安全更新。
+
+2. 实操题：在 Ubuntu 上，如何锁定 nginx 版本，防止 apt upgrade 将其升级？
+
+思路：sudo apt-mark hold nginx。查看已锁定包 apt-mark showhold，解锁 sudo apt-mark unhold nginx。
+
+3. 排障题：apt update 报错 GPG error: ... NO_PUBKEY ABCDEF123456。如何解决？
+
+思路：缺少公钥。使用 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ABCDEF123456 导入，或按现代方式将公钥放到 /etc/apt/keyrings/ 并用 signed-by 指定。
+
+4. 安全题：怀疑系统上的 /etc/ssh/sshd_config 被人篡改，如何用 rpm 验证该文件是否与原包一致？
+
+思路：rpm -V openssh-server。如果输出 S.5....T. c /etc/ssh/sshd_config，说明文件大小(S)、MD5(5)、时间戳(T) 改变了（c 表示配置文件，允许变化，但应审计）。
+
+5. 对比题：apt purge 和 apt remove 的区别是什么？
+
+思路：remove 只删除二进制文件，保留配置文件（/etc 下的）；purge 会连配置文件一起删除。
+
+6. 实操题：在 RHEL 9 中，如何只安装安全相关的更新，而不升级普通功能包？
+
+思路：sudo dnf update --security。或使用 dnf-automatic 配置 upgrade_type = security。
+
+7. 排障题：dpkg -i myapp.deb 报依赖缺失，如何让系统自动从仓库补全依赖？
+
+思路：sudo apt --fix-broken install，它会自动尝试补全缺失的依赖并完成安装。
+
+8. 综合题：公司内部使用自定义源，要求配置仓库时必须验证 GPG 签名且不依赖全局 apt-key。请写出 /etc/apt/sources.list.d/internal.list 的正确内容格式。
+
+思路：deb [signed-by=/etc/apt/keyrings/internal.gpg] https://internal.repo/ubuntu noble main。其中 internal.gpg 是提前 curl 下载并用 gpg --dearmor 转换过的二进制密钥文件。
 # 第十一章：安全与审计
 
 > **本章定位**：Linux安全是纵深防御体系，不是单一工具或配置。从SSH加固到内核安全模块，从审计日志到漏洞管理，理解"攻击面分析→防护→检测→响应"的闭环。
@@ -10900,6 +11307,44 @@ $ cat /var/log/auth.log 2>/dev/null | grep -i "failed\|invalid" | tail -20  # �
 > 本章扩充后字数：约 18,500 字
 > 涉及命令：sshd, ssh-keygen, fail2ban, pam_tally2/faillock, auditctl, ausearch, aureport, semanage, setsebool, aa-enforce, aa-complain, docker run --security-opt, trivy, lynis, oscap, unattended-upgrade, kpatch, canonical-livepatch
 > 基准版本：OpenSSH 9.7, auditd 3.1, SELinux policy 38, AppArmor 3.1, Docker 25.0
+
+---
+
+## 课后练习
+
+1. 概念题：SSH 配置中 PermitRootLogin no 和 PasswordAuthentication no 分别防御什么攻击？
+
+思路：PermitRootLogin no 防止直接暴力破解 root 密码（攻击者不知道用户名，只能盲猜）；PasswordAuthentication no 强制使用密钥，彻底防御密码爆破。
+
+2. 排障题：修改 /etc/ssh/sshd_config 后重启 SSH 失败，如何快速定位语法错误？
+
+思路：sudo sshd -t（测试模式），它会指出错误行号和具体原因。修复后再 systemctl restart sshd。
+
+3. 实操题：使用 auditd 添加一条规则，监控 /etc/sudoers 文件的写入（w）和属性修改（a）操作，并打上标签 sudoers_change。
+
+思路：sudo auditctl -w /etc/sudoers -p wa -k sudoers_change。永久生效需写入 /etc/audit/rules.d/ 下的 .rules 文件。
+
+4. 安全题：SELinux 处于 Enforcing 模式，Nginx 无法写入 /var/www/uploads，ausearch -m avc 显示 denied { write }。请给出两种解决方法。
+
+思路：1. 改标签：chcon -t httpd_sys_rw_content_t /var/www/uploads -R；2. 改布尔值：setsebool -P httpd_unified on（或特定布尔值）。最佳实践是改标签并 restorecon。
+
+5. 对比题：SELinux 和 AppArmor 在策略定义方式上的根本区别是什么？
+
+思路：SELinux 是类型强制（TE）基于 inode 标签，任何文件都有安全上下文；AppArmor 是路径强制，基于程序配置文件允许访问的路径。AppArmor 更简单，SELinux 更精细。
+
+6. 实操题：写一条 Docker 运行命令，要求容器：只读根文件系统、丢弃所有 Capabilities、仅添加 NET_BIND_SERVICE、禁止提权。
+
+思路：docker run --read-only --cap-drop=ALL --cap-add=NET_BIND_SERVICE --security-opt no-new-privileges:true myapp。
+
+7. 排障题：fail2ban 没有封禁任何 IP，但 journalctl -u fail2ban 显示 WARNING 'sshd' not found in 'systemd-journal'。问题出在哪？
+
+思路：fail2ban 的 backend 配置不对。默认 backend=auto 可能选了 pyinotify。应在 /etc/fail2ban/jail.local 中显式设置 backend = systemd 以读取 journald。
+
+8. 综合题：容器中运行 ping 8.8.8.8 报错 Operation not permitted，但宿主机可以。如何在不给容器 --privileged 的情况下修复？
+
+思路：ping 需要 CAP_NET_RAW。启动时添加 --cap-add=NET_RAW 即可。更优雅的做法是不用 ping，用 curl 或 nc 测试连通性。
+
+---
 # 第十二章：容器化与云原生基础
 
 > **本章定位**：Docker/Podman容器技术是现代Linux运维的核心，理解namespace+cgroups=容器。
@@ -11236,6 +11681,55 @@ docker inspect $CONTAINER | jq '.[0].HostConfig.NetworkMode'
 
 > **本章字数**：约 4,000 字
 > **全书完成！**
+
+---
+
+## 课后练习
+
+1. 概念题：容器的隔离依赖 Linux 内核的哪两大特性？分别负责什么？
+
+思路：命名空间 (Namespace) 负责“隔离”（看不同的 PID、网络、挂载点等）；Cgroups 负责“限制”（控制 CPU、内存、磁盘 IO 配额）。
+
+2. 排障题：Docker 容器内 top 看到 CPU 使用率，但宿主机 top 看到容器进程占满 2 个核。为什么容器内显示的数字可能和宿主机不一致？
+
+思路：Docker 默认容器内的 top 读取的是容器的 Cgroup 限制（如果没限制则看主机全部核心），而宿主机 top 是物理真实消耗。如果容器内存限制小于物理内存，free -m 显示也可能不一致。
+
+3. 实操题：写出 Dockerfile，使用多阶段构建，将一个 Go 程序编译成静态二进制，并最终放入 scratch 空镜像中运行。
+
+思路：
+
+```dockerfile
+FROM golang:1.21 AS builder
+WORKDIR /app
+COPY . .
+RUN CGO_ENABLED=0 go build -o server .
+FROM scratch
+COPY --from=builder /app/server /server
+EXPOSE 8080
+CMD ["/server"]
+```
+
+4. 对比题：Docker 的 bridge 网络模式和 host 网络模式，在性能和端口管理上有什么优缺点？
+
+思路：bridge 有 NAT 和端口映射开销（docker-proxy），但支持端口复用（宿主机 8080 映射容器 80）。host 无 NAT，性能最高，但容器直接占用宿主机端口，易冲突。
+
+5. 存储题：docker volume create 创建的数据卷和 bind mount（-v /host/path:/container/path）在管理方式上有何不同？
+
+思路：Volume 由 Docker 管理（存储在 /var/lib/docker/volumes/），可通过 docker volume 命令生命周期管理，适合生产数据；Bind mount 直接映射宿主机目录，依赖宿主机文件系统布局，适合开发调试。
+
+6. 实战题：启动一个 Podman 容器，要求以非 root 用户（nobody）运行，并挂载宿主机的 /data 为只读。
+
+思路：podman run --user 65534 -v /data:/data:ro --rm alpine ls /data。注意 rootless 模式下挂载宿主机目录可能需要额外配置用户命名空间映射。
+
+7. 网络题：Docker 容器访问宿主机上的 MySQL（宿主机 IP 是 192.168.1.10，端口 3306），容器内应连接什么地址？
+
+思路：对于 Docker，Linux 容器可连接 172.17.0.1（docker0 网桥的网关）或宿主机实际 IP。Mac/Windows 下需连接 host.docker.internal。最佳实践是不直接用 IP，用容器名称或服务发现。
+
+8. 综合题：如何查看一个运行中容器的 overlay2 存储层在宿主机上的具体路径？
+
+思路：docker inspect <container_id> | jq '.[0].GraphDriver.Data.UpperDir'。这将显示该容器可写层的绝对路径。
+
+---
 # 第二部分：第十三章 —— Linux 内核 6.x+ 前沿特性
 
 > **本章定位**：如果说前十二章是 Linux 的“躯干与四肢”，那么本章这些特性就是内核的“超强外挂”。从异步 I/O 到可编程调度，从智能拥塞控制到硬件级安全，再到实时能力和内存安全革命——本章覆盖 2024-2026 年 Linux 内核最激动人心的进化，是面向 AI 基础设施、自动驾驶和工业 4.0 的底层基石。
@@ -12213,9 +12707,55 @@ CONFIG_DRM_PANIC_QR_CODE=y
 
 ---
 
-> **本章字数**：约 14,500 字
+> **本节字数**：约 14,500 字（13.7 节）
 > **涉及命令**：fio, bpftool, sysctl, ss, cyclictest, chrt, rustc, insmod, bpftrace, perf
 > **基准版本**：Linux 6.6 LTS / 6.12 LTS / 6.19
+
+---
+
+## 课后练习
+
+1. 概念题：io_uring 相比传统的 libaio 核心优势是什么？（至少两点）
+
+思路：1. 批量提交/收割：一次系统调用提交 N 个请求，减少 syscall 开销；2. 零拷贝/内核轮询：支持 SQPOLL 模式，用户态无需系统调用也能完成 IO。
+
+2. 排障题：bpftool sched_ext load my_sched.bpf.o 报错 Error: failed to load program: Operation not permitted，除了 root 权限，还缺少什么内核配置？
+
+思路：缺少 CONFIG_SCHED_EXT（6.12+）或内核未开启。检查 uname -r 是否足够新，且 grep CONFIG_SCHED_EXT /boot/config-$(uname -r) 是否为 y。
+
+3. 实操题：启用并永久配置 BBR v3 拥塞控制，写出完整的 sysctl 配置内容。
+
+思路：
+
+```
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+```
+
+保存至 /etc/sysctl.d/99-bbr.conf 并 sysctl --system。
+
+4. 安全题：影子栈（Shadow Stack）防御的是哪一类攻击？需要什么硬件支持？
+
+思路：防御 ROP（返回导向编程） 攻击，通过硬件比对普通栈和影子栈的返回地址。需要 Intel CET（11代酷睿+）或 AMD Zen 4+。
+
+5. 实操题：在 RHEL 9 系统上安装实时内核 PREEMPT_RT 的包名是什么？安装后如何确认当前运行的是实时内核？
+
+思路：sudo dnf install kernel-rt。安装后重启，uname -r 应包含 rt 字样，或 cat /sys/kernel/realtime 输出 1。
+
+6. 对比题：EEVDF 调度器取代了 CFS，它引入的核心调度机制是什么？
+
+思路：虚拟截止时间 (Earliest Eligible Virtual Deadline First)。每个进程分配一个时间片预算和截止时间，调度器优先选择截止时间最早的进程运行，实现更精确的公平性和更低的延迟抖动。
+
+7. 排障题：应用使用了 mseal() 系统调用，但运行报错 Function not implemented。最可能的原因是什么？
+
+思路：内核版本低于 6.10 或未编译 CONFIG_MSEAL=y。mseal() 是 6.10 才引入的。
+
+8. 综合题：公司业务是跨大洲的数据库同步，网络延迟高（RTT > 200ms）。你会从本章中选取哪两个内核特性来优化？为什么？
+
+思路：1. BBR v3：主动探测带宽，在高 BDP（带宽时延积）网络中吞吐量远超 CUBIC。2. TCP 零拷贝接收 (6.12+)：如果传输大块数据，零拷贝可大幅降低 CPU 负载。如果遇到丢包，配合精确 ECN 使用。
+
+---
+
 # 附录A：Shell脚本实战：自动化你的日常工作
 
 > **本章定位**：Shell脚本是Linux管理员的"母语"。本章不讲语法字典，而是从中级管理员最常踩的坑出发，串讲变量、条件、循环、正则，最后用五个生产级脚本收尾。附录A 建议在学完第4章（进程管理）后阅读。
@@ -12509,12 +13049,13 @@ echo "Removed backups older than $RETENTION days"
 
 ---
 
-
----
-
 ## S.7 进阶：将脚本日志接入 journald
+
 **一句话定义**：`logger` 命令将 Shell 脚本的输出发送到 systemd-journald，实现结构化日志、自动轮转、统一查询——告别散落的 .log 文件。
+
 ### 为什么不用 echo >> /var/log/script.log？
+
+```bash
 # 传统方式（有问题）
 $ echo "Backup completed" >> /var/log/backup.log
 # 问题：
@@ -12522,7 +13063,11 @@ $ echo "Backup completed" >> /var/log/backup.log
 # 2. 没有优先级/级别区分
 # 3. 无法按服务过滤
 # 4. 缺少时间戳（需要手动 date）
-使用 logger 接入 journald
+```
+
+### 使用 logger 接入 journald
+
+```bash
 #!/bin/bash
 set -euo pipefail
 # 带标签和优先级的日志
@@ -12533,17 +13078,21 @@ if ! rsync -avz /data/ /backup/; then
     logger -t my-backup -p user.err "Backup failed with code $?"
     exit 1
 fi
-实战：全日志闭环的生产脚本模板
+```
+
+### 实战：全日志闭环的生产脚本模板
+
+```bash
 #!/bin/bash
 # /usr/local/bin/production-job.sh
 # 所有输出都走 journald，不写任何 .log 文件
 set -euo pipefail
 # 日志函数
 log_info() {
-    logger -t "$(basename $0)" -p user.info "$*"
+    logger -t "$(basename "$0")" -p user.info "$*"
 }
 log_error() {
-    logger -t "$(basename $0)" -p user.err "$*" >&2
+    logger -t "$(basename "$0")" -p user.err "$*" >&2
 }
 log_info "Job started"
 # 后台运行的标准输出也重定向到 logger
@@ -12555,7 +13104,11 @@ do_heavy_work 2>&1 | logger -t my-job -p user.info
 # 错误捕获
 trap 'log_error "Script failed on line $LINENO"' ERR
 log_info "Job completed successfully"
-查询脚本日志
+```
+
+### 查询脚本日志
+
+```bash
 # 按标签查
 $ journalctl -t my-backup -f
 # 按优先级过滤
@@ -12564,10 +13117,15 @@ $ journalctl -t my-backup -p err
 $ journalctl -t my-job --since "5 minutes ago"
 # 导出为 JSON 供分析
 $ journalctl -t my-backup -o json | jq '.MESSAGE'
-避坑指南
+```
+
+### 避坑指南
+
+```bash
 # 坑1：logger 默认是 user.notice，需显式指定级别
 # 坑2：systemd 服务中默认已捕获 stdout，无需额外 logger
 # 坑3：在 cron 中使用 logger 时，需确保 PATH 包含 /usr/bin
+```
 
 
 ## 本章小结
