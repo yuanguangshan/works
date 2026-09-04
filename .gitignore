@@ -7,3 +7,7 @@
 
 # Reasonix
 .reasonix/
+
+# 本地工具目录
+.claude/
+.shell/
